@@ -1,0 +1,362 @@
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<title>TOP pas à pas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : carte quadrillée (comme les figures d'annales) à gauche, panneau d'explication à droite, lecteur pas à pas dessous */
+:root {
+  --bg: #f5f7fa; --surface: #ffffff; --fg: #18202b; --muted: #5d6878; --line: #d9dfe7;
+  --grid: #e3e8ef; --grid-strong: #c9d2de;
+  --accent: #2f5bd3; --v1: #2f5bd3; --v2: #d9640f; --v3: #12866b; --v4: #9b3fbf;
+  --off: #b3bcc8; --bad: #cf2e3e; --good: #198754; --warn-bg: #fff4e5;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141b; --surface: #171e28; --fg: #e6ebf2; --muted: #98a3b3; --line: #2a3442;
+  --grid: #1d2632; --grid-strong: #2b3747;
+  --accent: #7ea2ff; --v1: #7ea2ff; --v2: #ff9a4d; --v3: #3fcca5; --v4: #cf8cf0;
+  --off: #4f5b6b; --bad: #ff6b78; --good: #4cc98a; --warn-bg: #2a2114; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #171e28; --fg: #e6ebf2; --muted: #98a3b3; --line: #2a3442;
+  --grid: #1d2632; --grid-strong: #2b3747;
+  --accent: #7ea2ff; --v1: #7ea2ff; --v2: #ff9a4d; --v3: #3fcca5; --v4: #cf8cf0;
+  --off: #4f5b6b; --bad: #ff6b78; --good: #4cc98a; --warn-bg: #2a2114; color-scheme: dark }
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
+h1 { font-family: var(--f-display); font-size: 1.7rem; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 2px 0 0; font-size: 0.92rem; }
+.sub b { font-family: var(--f-mono); font-weight: 500; color: var(--fg); }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button { font: 500 0.88rem var(--f-body); padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--fg); cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: minmax(0, 1fr); } }
+
+.map { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+.map svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; color: var(--muted); padding: 6px 4px 2px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 0; border-top: 3px solid; display: inline-block; }
+.sw.dash { border-top-style: dashed; border-top-width: 2px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+.panel { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.stephead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.chip { font: 600 0.72rem var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+  background: color-mix(in srgb, var(--chip, var(--accent)) 16%, transparent); color: var(--chip, var(--accent)); }
+.count { font-family: var(--f-mono); font-size: 0.8rem; color: var(--muted); margin-left: auto; }
+.steptitle { font-family: var(--f-display); font-size: 1.2rem; margin: 8px 0 4px; text-wrap: balance; }
+.steptext { margin: 0; max-width: 62ch; }
+
+.label { font: 600 0.72rem var(--f-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.profit { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.profit .big { font-family: var(--f-mono); font-size: 2rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.profit .ref { color: var(--muted); font-size: 0.88rem; }
+.pbar { position: relative; height: 10px; background: var(--grid); border-radius: 5px; margin-top: 8px; overflow: hidden; }
+.pbar i { position: absolute; inset: 0 auto 0 0; background: var(--good); border-radius: 5px; transition: width .35s ease; }
+
+.veh { display: grid; grid-template-columns: 92px minmax(0, 1fr) 96px; gap: 4px 10px; align-items: center; font-size: 0.86rem; }
+.veh .name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.tbar { position: relative; height: 14px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+.tbar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; transition: width .35s ease; }
+.veh .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; font-size: 0.8rem; }
+.veh .seq { grid-column: 2 / 4; font-family: var(--f-mono); font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; overflow-wrap: anywhere; }
+.unserved { font-family: var(--f-mono); font-size: 0.84rem; color: var(--muted); }
+
+.tblwrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.84rem; }
+th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+th { font-weight: 600; color: var(--muted); font-size: 0.74rem; text-transform: uppercase; letter-spacing: .05em; }
+td { font-family: var(--f-mono); }
+th:first-child, td:first-child { text-align: left; }
+tr.win td { color: var(--good); font-weight: 600; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 6px 0 0; }
+
+.player { margin-top: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.ctrls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ctrls button { font: 600 0.9rem var(--f-body); min-width: 44px; height: 38px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.ctrls button.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); min-width: 110px; }
+.ctrls label { font-size: 0.82rem; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.ctrls .toggle { margin-left: 0; }
+.timeline { display: flex; gap: 3px; flex-wrap: wrap; }
+.timeline button { flex: 1 1 14px; min-width: 14px; max-width: 48px; height: 18px; border-radius: 3px; border: 0; cursor: pointer;
+  background: color-mix(in srgb, var(--c) 30%, var(--grid)); padding: 0; }
+.timeline button.on { background: var(--c); outline: 2px solid var(--fg); outline-offset: 1px; }
+.timeline button.past { background: color-mix(in srgb, var(--c) 70%, var(--grid)); }
+.phases { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.76rem; color: var(--muted); }
+.phases span { display: inline-flex; gap: 5px; align-items: center; }
+
+/* SVG */
+.gridl { stroke: var(--grid); stroke-width: 0.03; }
+.gridl.ax { stroke: var(--grid-strong); }
+.axlbl { fill: var(--muted); font: 0.32px var(--f-mono); }
+.node circle { stroke: var(--surface); stroke-width: 0.06; }
+.node text.id { fill: var(--surface); font: 600 0.34px var(--f-body); text-anchor: middle; dominant-baseline: central; }
+.node text.p { fill: var(--muted); font: 500 0.28px var(--f-mono); }
+.node.off text.id { fill: var(--fg); }
+.depot rect { fill: var(--fg); }
+.depot text { fill: var(--bg); font: 700 0.3px var(--f-body); text-anchor: middle; dominant-baseline: central; }
+.route { fill: none; stroke-width: 0.075; stroke-linejoin: round; stroke-linecap: round; }
+.removed { stroke: var(--bad); stroke-width: 0.06; stroke-dasharray: 0.15 0.12; fill: none; }
+.added { fill: none; stroke-width: 0.17; stroke-linecap: round; opacity: 0.35; }
+.giant { stroke: var(--muted); stroke-width: 0.04; stroke-dasharray: 0.12 0.1; fill: none; }
+.gnum { fill: var(--muted); font: 0.22px var(--f-mono); }
+.plne { fill: none; stroke: var(--good); stroke-width: 0.05; stroke-dasharray: 0.04 0.1; stroke-linecap: round; }
+.focus { fill: none; stroke: var(--bad); stroke-width: 0.06; }
+@media (prefers-reduced-motion: no-preference) { .focus { animation: pulse 1.2s ease-in-out infinite; } .tbar i, .pbar i { transition: width .35s ease; } }
+@media (prefers-reduced-motion: reduce) { .tbar i, .pbar i { transition: none; } }
+@keyframes pulse { 50% { stroke-opacity: 0.25; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Tournées sélectives, pas à pas</h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="tabs" id="tabs" role="group" aria-label="Choix de la méthode"></div>
+  </header>
+
+  <div class="main">
+    <div class="map">
+      <svg id="svg" viewBox="-0.9 -0.9 12.4 11.8" role="img" aria-label="Carte des clients et des tournées"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <div class="stephead"><span class="chip" id="chip"></span><span class="count" id="count"></span></div>
+        <h2 class="steptitle" id="title"></h2>
+        <p class="steptext" id="text"></p>
+      </div>
+      <div class="card">
+        <p class="label">Profit collecté</p>
+        <div class="profit"><span class="big" id="profit">0</span><span class="ref" id="pref"></span></div>
+        <div class="pbar"><i id="pbar"></i></div>
+      </div>
+      <div class="card">
+        <p class="label">Durée de chaque tournée (limite L)</p>
+        <div class="veh" id="veh"></div>
+        <p class="unserved" id="unserved"></p>
+      </div>
+      <div class="card" id="candcard" hidden>
+        <p class="label">Candidats à cette étape (meilleurs ratios)</p>
+        <div class="tblwrap"><table id="cand"></table></div>
+        <p class="hint">Détour = C<sub>ij</sub> + C<sub>jl</sub> − C<sub>il</sub> à la meilleure place. Ratio = P / détour<sup>α</sup>. On prend le plus grand.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="player">
+    <div class="ctrls">
+      <button id="first" aria-label="Première étape">⏮</button>
+      <button id="prev" aria-label="Étape précédente">◀</button>
+      <button id="play" class="primary">▶ Lecture</button>
+      <button id="next" aria-label="Étape suivante">▶</button>
+      <button id="last" aria-label="Dernière étape">⏭</button>
+      <label class="toggle"><input type="checkbox" id="showplne"> Voir l'optimum PLNE</label>
+      <label>Vitesse <input type="range" id="speed" min="400" max="3000" step="100" value="1600" style="direction: rtl"></label>
+    </div>
+    <div class="timeline" id="timeline" aria-label="Étapes"></div>
+    <div class="phases" id="phases"></div>
+  </div>
+</div>
+
+<script>
+const DATA = {"instance": {"coords": [[5.0, 5.0], [1.0, 2.0], [2.0, 8.0], [3.0, 4.0], [6.0, 9.0], [8.0, 7.0], [9.0, 2.0], [7.0, 1.0], [4.0, 6.0], [0.0, 9.0], [10.0, 10.0], [1.0, 0.0], [6.0, 4.0], [5.0, 5.0]], "P": [0, 10.0, 20.0, 15.0, 25.0, 10.0, 30.0, 15.0, 5.0, 25.0, 30.0, 20.0, 10.0, 0], "m": 2, "L": 25.0, "d": 0, "a": 13, "n": 12}, "plne": {"profit": 215.0, "routes": [[12, 7, 6, 5, 10, 4, 8], [3, 1, 11, 2, 9]], "times": [24.66, 23.766]}, "scenarios": [{"key": "ins1", "label": "Insertion P / détour (α = 1)", "steps": [{"phase": "Construction", "title": "Départ", "text": "Chaque véhicule part de la tournée vide d → a. On va remplir les tournées une par une en insérant le client qui maximise P / détour.", "routes": [[], []], "times": [0.0, 0.0], "profit": 0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 12", "text": "Meilleur ratio : client 12 (P = 10) inséré entre d et a, détour = 2.83, ratio = 3.54. Durée de la tournée : 2.83 / 25.", "routes": [[12], []], "times": [2.828, 0.0], "profit": 10.0, "focus": [12], "removed": [[0, 13]], "added": [[0, 12], [12, 13]], "candidates": [{"j": 12, "P": 10.0, "delta": 2.83, "score": 3.54}, {"j": 3, "P": 15.0, "delta": 4.47, "score": 3.35}, {"j": 4, "P": 25.0, "delta": 8.25, "score": 3.03}, {"j": 6, "P": 30.0, "delta": 10.0, "score": 3.0}, {"j": 2, "P": 20.0, "delta": 8.49, "score": 2.36}, {"j": 10, "P": 30.0, "delta": 14.14, "score": 2.12}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 6", "text": "Meilleur ratio : client 6 (P = 30) inséré entre d et le client 12, détour = 7.19, ratio = 4.17. Durée de la tournée : 10.02 / 25.", "routes": [[6, 12], []], "times": [10.02, 0.0], "profit": 40.0, "focus": [6], "removed": [[0, 12]], "added": [[0, 6], [6, 12]], "candidates": [{"j": 6, "P": 30.0, "delta": 7.19, "score": 4.17}, {"j": 3, "P": 15.0, "delta": 3.82, "score": 3.92}, {"j": 4, "P": 25.0, "delta": 7.71, "score": 3.24}, {"j": 7, "P": 15.0, "delta": 6.22, "score": 2.41}, {"j": 2, "P": 20.0, "delta": 8.49, "score": 2.36}, {"j": 10, "P": 30.0, "delta": 12.87, "score": 2.33}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 7", "text": "Meilleur ratio : client 7 (P = 15) inséré entre d et le client 6, détour = 1.71, ratio = 8.78. Durée de la tournée : 11.73 / 25.", "routes": [[7, 6, 12], []], "times": [11.728, 0.0], "profit": 55.0, "focus": [7], "removed": [[0, 6]], "added": [[0, 7], [7, 6]], "candidates": [{"j": 7, "P": 15.0, "delta": 1.71, "score": 8.78}, {"j": 3, "P": 15.0, "delta": 3.56, "score": 4.21}, {"j": 4, "P": 25.0, "delta": 6.74, "score": 3.71}, {"j": 10, "P": 30.0, "delta": 10.13, "score": 2.96}, {"j": 5, "P": 10.0, "delta": 3.7, "score": 2.7}, {"j": 2, "P": 20.0, "delta": 8.46, "score": 2.36}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 3", "text": "Meilleur ratio : client 3 (P = 15) inséré entre d et le client 7, détour = 2.76, ratio = 5.43. Durée de la tournée : 14.49 / 25.", "routes": [[3, 7, 6, 12], []], "times": [14.492, 0.0], "profit": 70.0, "focus": [3], "removed": [[0, 7]], "added": [[0, 3], [3, 7]], "candidates": [{"j": 3, "P": 15.0, "delta": 2.76, "score": 5.43}, {"j": 4, "P": 25.0, "delta": 7.71, "score": 3.24}, {"j": 10, "P": 30.0, "delta": 11.67, "score": 2.57}, {"j": 11, "P": 20.0, "delta": 8.01, "score": 2.5}, {"j": 2, "P": 20.0, "delta": 8.37, "score": 2.39}, {"j": 9, "P": 25.0, "delta": 12.56, "score": 1.99}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 11", "text": "Meilleur ratio : client 11 (P = 20) inséré entre le client 3 et le client 7, détour = 5.55, ratio = 3.60. Durée de la tournée : 20.05 / 25.", "routes": [[3, 11, 7, 6, 12], []], "times": [20.047, 0.0], "profit": 90.0, "focus": [11], "removed": [[3, 7]], "added": [[3, 11], [11, 7]], "candidates": [{"j": 11, "P": 20.0, "delta": 5.55, "score": 3.6}, {"j": 8, "P": 5.0, "delta": 1.41, "score": 3.54}, {"j": 2, "P": 20.0, "delta": 6.13, "score": 3.26}, {"j": 4, "P": 25.0, "delta": 7.71, "score": 3.24}, {"j": 1, "P": 10.0, "delta": 3.91, "score": 2.56}, {"j": 9, "P": 25.0, "delta": 10.0, "score": 2.5}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 1", "text": "Meilleur ratio : client 1 (P = 10) inséré entre le client 3 et le client 11, détour = 0.36, ratio = 28.07. Durée de la tournée : 20.40 / 25.", "routes": [[3, 1, 11, 7, 6, 12], []], "times": [20.403, 0.0], "profit": 100.0, "focus": [1], "removed": [[3, 11]], "added": [[3, 1], [1, 11]], "candidates": [{"j": 1, "P": 10.0, "delta": 0.36, "score": 28.07}, {"j": 8, "P": 5.0, "delta": 1.41, "score": 3.54}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 8", "text": "Meilleur ratio : client 8 (P = 5) inséré entre d et le client 3, détour = 1.41, ratio = 3.54. Durée de la tournée : 21.82 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], []], "times": [21.817, 0.0], "profit": 105.0, "focus": [8], "removed": [[0, 3]], "added": [[0, 8], [8, 3]], "candidates": [{"j": 8, "P": 5.0, "delta": 1.41, "score": 3.54}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 plein", "text": "Plus aucun client non servi ne rentre dans la tournée 1 sans dépasser L = 25 (durée actuelle 21.82). On passe au véhicule suivant.", "routes": [[8, 3, 1, 11, 7, 6, 12], []], "times": [21.817, 0.0], "profit": 105.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 4", "text": "Meilleur ratio : client 4 (P = 25) inséré entre d et a, détour = 8.25, ratio = 3.03. Durée de la tournée : 8.25 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], [4]], "times": [21.817, 8.246], "profit": 130.0, "focus": [4], "removed": [[0, 13]], "added": [[0, 4], [4, 13]], "candidates": [{"j": 4, "P": 25.0, "delta": 8.25, "score": 3.03}, {"j": 2, "P": 20.0, "delta": 8.49, "score": 2.36}, {"j": 10, "P": 30.0, "delta": 14.14, "score": 2.12}, {"j": 9, "P": 25.0, "delta": 12.81, "score": 1.95}, {"j": 5, "P": 10.0, "delta": 7.21, "score": 1.39}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 2", "text": "Meilleur ratio : client 2 (P = 20) inséré entre d et le client 4, détour = 4.24, ratio = 4.71. Durée de la tournée : 12.49 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 4]], "times": [21.817, 12.489], "profit": 150.0, "focus": [2], "removed": [[0, 4]], "added": [[0, 2], [2, 4]], "candidates": [{"j": 2, "P": 20.0, "delta": 4.24, "score": 4.71}, {"j": 5, "P": 10.0, "delta": 2.31, "score": 4.33}, {"j": 10, "P": 30.0, "delta": 7.07, "score": 4.24}, {"j": 9, "P": 25.0, "delta": 8.28, "score": 3.02}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 9", "text": "Meilleur ratio : client 9 (P = 25) inséré entre le client 2 et le client 4, détour = 4.11, ratio = 6.08. Durée de la tournée : 16.60 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 9, 4]], "times": [21.817, 16.602], "profit": 175.0, "focus": [9], "removed": [[2, 4]], "added": [[2, 9], [9, 4]], "candidates": [{"j": 9, "P": 25.0, "delta": 4.11, "score": 6.08}, {"j": 5, "P": 10.0, "delta": 2.31, "score": 4.33}, {"j": 10, "P": 30.0, "delta": 7.07, "score": 4.24}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 5", "text": "Meilleur ratio : client 5 (P = 10) inséré entre le client 4 et a, détour = 2.31, ratio = 4.33. Durée de la tournée : 18.91 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 9, 4, 5]], "times": [21.817, 18.913], "profit": 185.0, "focus": [5], "removed": [[4, 13]], "added": [[4, 5], [5, 13]], "candidates": [{"j": 5, "P": 10.0, "delta": 2.31, "score": 4.33}, {"j": 10, "P": 30.0, "delta": 7.07, "score": 4.24}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 10", "text": "Meilleur ratio : client 10 (P = 30) inséré entre le client 4 et le client 5, détour = 4.90, ratio = 6.12. Durée de la tournée : 23.81 / 25.", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 9, 4, 10, 5]], "times": [21.817, 23.813], "profit": 215.0, "focus": [10], "removed": [[4, 5]], "added": [[4, 10], [10, 5]], "candidates": [{"j": 10, "P": 30.0, "delta": 4.9, "score": 6.12}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 plein", "text": "Plus aucun client non servi ne rentre dans la tournée 2 sans dépasser L = 25 (durée actuelle 23.81).", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 9, 4, 10, 5]], "times": [21.817, 23.813], "profit": 215.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Recherche locale", "title": "Début de la recherche locale", "text": "On répète : 2-opt dans chaque tournée, insertion des non servis, remplacement par un client plus rentable, déplacement puis échange entre tournées, jusqu'à ce qu'aucun mouvement n'améliore.", "routes": [[8, 3, 1, 11, 7, 6, 12], [2, 9, 4, 10, 5]], "times": [21.817, 23.813], "profit": 215.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Déplacement", "title": "Déplace le client 8 vers une autre tournée", "text": "Le client 8 coûte moins cher dans l'autre tournée. Durée totale : 45.63 → 44.22. Ce temps libéré pourra servir à insérer quelqu'un.", "routes": [[3, 1, 11, 7, 6, 12], [8, 2, 9, 4, 10, 5]], "times": [20.403, 23.813], "profit": 215.0, "focus": [8], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Fin", "title": "Optimum local atteint", "text": "Plus aucun mouvement n'améliore la solution. Profit final : 215.", "routes": [[3, 1, 11, 7, 6, 12], [8, 2, 9, 4, 10, 5]], "times": [20.403, 23.813], "profit": 215.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}]}, {"key": "ins05", "label": "Insertion P / √détour (α = 0,5)", "steps": [{"phase": "Construction", "title": "Départ", "text": "Chaque véhicule part de la tournée vide d → a. On va remplir les tournées une par une en insérant le client qui maximise P / détour^0.5.", "routes": [[], []], "times": [0.0, 0.0], "profit": 0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 6", "text": "Meilleur ratio : client 6 (P = 30) inséré entre d et a, détour = 10.00, ratio = 9.49. Durée de la tournée : 10.00 / 25.", "routes": [[6], []], "times": [10.0, 0.0], "profit": 30.0, "focus": [6], "removed": [[0, 13]], "added": [[0, 6], [6, 13]], "candidates": [{"j": 6, "P": 30.0, "delta": 10.0, "score": 9.49}, {"j": 4, "P": 25.0, "delta": 8.25, "score": 8.71}, {"j": 10, "P": 30.0, "delta": 14.14, "score": 7.98}, {"j": 3, "P": 15.0, "delta": 4.47, "score": 7.09}, {"j": 9, "P": 25.0, "delta": 12.81, "score": 6.99}, {"j": 2, "P": 20.0, "delta": 8.49, "score": 6.87}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 12", "text": "Meilleur ratio : client 12 (P = 10) inséré entre d et le client 6, détour = 0.02, ratio = 71.13. Durée de la tournée : 10.02 / 25.", "routes": [[12, 6], []], "times": [10.02, 0.0], "profit": 40.0, "focus": [12], "removed": [[0, 6]], "added": [[0, 12], [12, 6]], "candidates": [{"j": 12, "P": 10.0, "delta": 0.02, "score": 71.13}, {"j": 7, "P": 15.0, "delta": 1.71, "score": 11.48}, {"j": 4, "P": 25.0, "delta": 6.74, "score": 9.63}, {"j": 10, "P": 30.0, "delta": 10.13, "score": 9.42}, {"j": 3, "P": 15.0, "delta": 3.56, "score": 7.95}, {"j": 9, "P": 25.0, "delta": 12.8, "score": 6.99}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 7", "text": "Meilleur ratio : client 7 (P = 15) inséré entre le client 6 et a, détour = 1.71, ratio = 11.48. Durée de la tournée : 11.73 / 25.", "routes": [[12, 6, 7], []], "times": [11.728, 0.0], "profit": 55.0, "focus": [7], "removed": [[6, 13]], "added": [[6, 7], [7, 13]], "candidates": [{"j": 7, "P": 15.0, "delta": 1.71, "score": 11.48}, {"j": 4, "P": 25.0, "delta": 6.74, "score": 9.63}, {"j": 10, "P": 30.0, "delta": 10.13, "score": 9.42}, {"j": 3, "P": 15.0, "delta": 3.56, "score": 7.95}, {"j": 9, "P": 25.0, "delta": 12.8, "score": 6.99}, {"j": 2, "P": 20.0, "delta": 8.46, "score": 6.88}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 3", "text": "Meilleur ratio : client 3 (P = 15) inséré entre le client 7 et a, détour = 2.76, ratio = 9.02. Durée de la tournée : 14.49 / 25.", "routes": [[12, 6, 7, 3], []], "times": [14.492, 0.0], "profit": 70.0, "focus": [3], "removed": [[7, 13]], "added": [[7, 3], [3, 13]], "candidates": [{"j": 3, "P": 15.0, "delta": 2.76, "score": 9.02}, {"j": 4, "P": 25.0, "delta": 7.71, "score": 9.0}, {"j": 10, "P": 30.0, "delta": 11.67, "score": 8.78}, {"j": 11, "P": 20.0, "delta": 8.01, "score": 7.06}, {"j": 9, "P": 25.0, "delta": 12.56, "score": 7.05}, {"j": 2, "P": 20.0, "delta": 8.37, "score": 6.91}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 4", "text": "Meilleur ratio : client 4 (P = 25) inséré entre d et le client 12, détour = 7.71, ratio = 9.00. Durée de la tournée : 22.20 / 25.", "routes": [[4, 12, 6, 7, 3], []], "times": [22.201, 0.0], "profit": 95.0, "focus": [4], "removed": [[0, 12]], "added": [[0, 4], [4, 12]], "candidates": [{"j": 4, "P": 25.0, "delta": 7.71, "score": 9.0}, {"j": 11, "P": 20.0, "delta": 5.55, "score": 8.49}, {"j": 2, "P": 20.0, "delta": 6.13, "score": 8.08}, {"j": 9, "P": 25.0, "delta": 10.0, "score": 7.91}, {"j": 1, "P": 10.0, "delta": 3.91, "score": 5.06}, {"j": 5, "P": 10.0, "delta": 5.1, "score": 4.43}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 5", "text": "Meilleur ratio : client 5 (P = 10) inséré entre le client 4 et le client 12, détour = 1.43, ratio = 8.35. Durée de la tournée : 23.63 / 25.", "routes": [[4, 5, 12, 6, 7, 3], []], "times": [23.635, 0.0], "profit": 105.0, "focus": [5], "removed": [[4, 12]], "added": [[4, 5], [5, 12]], "candidates": [{"j": 5, "P": 10.0, "delta": 1.43, "score": 8.35}, {"j": 8, "P": 5.0, "delta": 0.9, "score": 5.28}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 : insère le client 8", "text": "Meilleur ratio : client 8 (P = 5) inséré entre d et le client 4, détour = 0.90, ratio = 5.28. Durée de la tournée : 24.53 / 25.", "routes": [[8, 4, 5, 12, 6, 7, 3], []], "times": [24.531, 0.0], "profit": 110.0, "focus": [8], "removed": [[0, 4]], "added": [[0, 8], [8, 4]], "candidates": [{"j": 8, "P": 5.0, "delta": 0.9, "score": 5.28}], "giant": null}, {"phase": "Construction", "title": "Véhicule 1 plein", "text": "Plus aucun client non servi ne rentre dans la tournée 1 sans dépasser L = 25 (durée actuelle 24.53). On passe au véhicule suivant.", "routes": [[8, 4, 5, 12, 6, 7, 3], []], "times": [24.531, 0.0], "profit": 110.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 10", "text": "Meilleur ratio : client 10 (P = 30) inséré entre d et a, détour = 14.14, ratio = 7.98. Durée de la tournée : 14.14 / 25.", "routes": [[8, 4, 5, 12, 6, 7, 3], [10]], "times": [24.531, 14.142], "profit": 140.0, "focus": [10], "removed": [[0, 13]], "added": [[0, 10], [10, 13]], "candidates": [{"j": 10, "P": 30.0, "delta": 14.14, "score": 7.98}, {"j": 9, "P": 25.0, "delta": 12.81, "score": 6.99}, {"j": 2, "P": 20.0, "delta": 8.49, "score": 6.87}, {"j": 11, "P": 20.0, "delta": 12.81, "score": 5.59}, {"j": 1, "P": 10.0, "delta": 10.0, "score": 3.16}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 2", "text": "Meilleur ratio : client 2 (P = 20) inséré entre d et le client 10, détour = 5.42, ratio = 8.59. Durée de la tournée : 19.56 / 25.", "routes": [[8, 4, 5, 12, 6, 7, 3], [2, 10]], "times": [24.531, 19.56], "profit": 160.0, "focus": [2], "removed": [[0, 10]], "added": [[0, 2], [2, 10]], "candidates": [{"j": 2, "P": 20.0, "delta": 5.42, "score": 8.59}, {"j": 9, "P": 25.0, "delta": 9.38, "score": 8.16}, {"j": 1, "P": 10.0, "delta": 9.97, "score": 3.17}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 : insère le client 9", "text": "Meilleur ratio : client 9 (P = 25) inséré entre le client 2 et le client 10, détour = 4.04, ratio = 12.44. Durée de la tournée : 23.60 / 25.", "routes": [[8, 4, 5, 12, 6, 7, 3], [2, 9, 10]], "times": [24.531, 23.6], "profit": 185.0, "focus": [9], "removed": [[2, 10]], "added": [[2, 9], [9, 10]], "candidates": [{"j": 9, "P": 25.0, "delta": 4.04, "score": 12.44}], "giant": null}, {"phase": "Construction", "title": "Véhicule 2 plein", "text": "Plus aucun client non servi ne rentre dans la tournée 2 sans dépasser L = 25 (durée actuelle 23.60).", "routes": [[8, 4, 5, 12, 6, 7, 3], [2, 9, 10]], "times": [24.531, 23.6], "profit": 185.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Recherche locale", "title": "Début de la recherche locale", "text": "On répète : 2-opt dans chaque tournée, insertion des non servis, remplacement par un client plus rentable, déplacement puis échange entre tournées, jusqu'à ce qu'aucun mouvement n'améliore.", "routes": [[8, 4, 5, 12, 6, 7, 3], [2, 9, 10]], "times": [24.531, 23.6], "profit": 185.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Déplacement", "title": "Déplace le client 8 vers une autre tournée", "text": "Le client 8 coûte moins cher dans l'autre tournée. Durée totale : 48.13 → 47.23. Ce temps libéré pourra servir à insérer quelqu'un.", "routes": [[4, 5, 12, 6, 7, 3], [8, 2, 9, 10]], "times": [23.635, 23.6], "profit": 185.0, "focus": [8], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Déplacement", "title": "Déplace le client 4 vers une autre tournée", "text": "Le client 4 coûte moins cher dans l'autre tournée. Durée totale : 47.23 → 43.96. Ce temps libéré pourra servir à insérer quelqu'un.", "routes": [[5, 12, 6, 7, 3], [8, 2, 9, 4, 10]], "times": [20.289, 23.673], "profit": 185.0, "focus": [4], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 1", "text": "Les arêtes (d,5) et (12,6) se croisent ou sont mal ordonnées. On les remplace par (d,12) et (5,6) en inversant le morceau entre les deux. Gain de temps : 0.70. Le profit ne change pas, mais on libère du temps.", "routes": [[12, 5, 6, 7, 3], [8, 2, 9, 4, 10]], "times": [19.591, 23.673], "profit": 185.0, "focus": [], "removed": [[0, 5], [12, 6]], "added": [[0, 12], [5, 6]], "candidates": null, "giant": null}, {"phase": "Insertion", "title": "Insère le client non servi 1", "text": "Grâce au temps libéré, le client 1 (P = 10) rentre dans la tournée 1 entre 7 et 3 (détour 3.91). Profit + 10.", "routes": [[12, 5, 6, 7, 1, 3], [8, 2, 9, 4, 10]], "times": [23.502, 23.673], "profit": 195.0, "focus": [1], "removed": [[7, 3]], "added": [[7, 1], [1, 3]], "candidates": null, "giant": null}, {"phase": "Remplacement", "title": "Remplace le client 12 par le client 11", "text": "On retire le client 12 (P = 10) et on met à la place le client non servi 11 (P = 20), la tournée reste ≤ L. Profit : 195 → 205.", "routes": [[5, 6, 7, 11, 1, 3], [8, 2, 9, 4, 10]], "times": [24.088, 23.673], "profit": 205.0, "focus": [11, 12], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Déplacement", "title": "Déplace le client 5 vers une autre tournée", "text": "Le client 5 coûte moins cher dans l'autre tournée. Durée totale : 47.76 → 44.20. Ce temps libéré pourra servir à insérer quelqu'un.", "routes": [[6, 7, 11, 1, 3], [8, 2, 9, 4, 10, 5]], "times": [20.383, 23.813], "profit": 205.0, "focus": [5], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Insertion", "title": "Insère le client non servi 12", "text": "Grâce au temps libéré, le client 12 (P = 10) rentre dans la tournée 1 entre d et 6 (détour 0.02). Profit + 10.", "routes": [[12, 6, 7, 11, 1, 3], [8, 2, 9, 4, 10, 5]], "times": [20.403, 23.813], "profit": 215.0, "focus": [12], "removed": [[0, 6]], "added": [[0, 12], [12, 6]], "candidates": null, "giant": null}, {"phase": "Fin", "title": "Optimum local atteint", "text": "Plus aucun mouvement n'améliore la solution. Profit final : 215.", "routes": [[12, 6, 7, 11, 1, 3], [8, 2, 9, 4, 10, 5]], "times": [20.403, 23.813], "profit": 215.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}]}, {"key": "giant", "label": "Tour géant PPV + découpage", "steps": [{"phase": "Construction", "title": "Tour géant (plus proche voisin)", "text": "On construit un tour qui passe par TOUS les clients avec le plus proche voisin (départ depuis le client 11, meilleur des 22 essais). Ordre : 11 → 1 → 3 → 8 → 2 → 9 → 4 → 5 → 10 → 12 → 7 → 6. Il est bien trop long pour un seul véhicule : il faut le découper.", "routes": [[], []], "times": [0.0, 0.0], "profit": 0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": [11, 1, 3, 8, 2, 9, 4, 5, 10, 12, 7, 6]}, {"phase": "Construction", "title": "Découpage à la Beasley (programmation dynamique)", "text": "On garde au plus m = 2 morceaux CONSÉCUTIFS du tour géant, chacun faisable (d → morceau → a ≤ L), et la PD choisit ceux qui rapportent le plus : véhicule 1 = [11 1 3 8 2 9] ; véhicule 2 = [5 10 12 7 6]. Les clients sautés (4) ne sont pas servis.", "routes": [[11, 1, 3, 8, 2, 9], [5, 10, 12, 7, 6]], "times": [24.935, 24.821], "profit": 190.0, "focus": [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12], "removed": [], "added": [], "candidates": null, "giant": [11, 1, 3, 8, 2, 9, 4, 5, 10, 12, 7, 6]}, {"phase": "Recherche locale", "title": "Début de la recherche locale", "text": "On répète : 2-opt dans chaque tournée, insertion des non servis, remplacement par un client plus rentable, déplacement puis échange entre tournées, jusqu'à ce qu'aucun mouvement n'améliore.", "routes": [[11, 1, 3, 8, 2, 9], [5, 10, 12, 7, 6]], "times": [24.935, 24.821], "profit": 190.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 1", "text": "Les arêtes (3,8) et (9,a) se croisent ou sont mal ordonnées. On les remplace par (3,9) et (8,a) en inversant le morceau entre les deux. Gain de temps : 1.39. Le profit ne change pas, mais on libère du temps.", "routes": [[11, 1, 3, 9, 2, 8], [5, 10, 12, 7, 6]], "times": [23.541, 24.821], "profit": 190.0, "focus": [], "removed": [[3, 8], [9, 13]], "added": [[3, 9], [8, 13]], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 1", "text": "Les arêtes (d,11) et (3,9) se croisent ou sont mal ordonnées. On les remplace par (d,3) et (11,9) en inversant le morceau entre les deux. Gain de temps : 0.94. Le profit ne change pas, mais on libère du temps.", "routes": [[3, 1, 11, 9, 2, 8], [5, 10, 12, 7, 6]], "times": [22.599, 24.821], "profit": 190.0, "focus": [], "removed": [[0, 11], [3, 9]], "added": [[0, 3], [11, 9]], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 1", "text": "Les arêtes (3,1) et (11,9) se croisent ou sont mal ordonnées. On les remplace par (3,11) et (1,9) en inversant le morceau entre les deux. Gain de temps : 0.34. Le profit ne change pas, mais on libère du temps.", "routes": [[3, 11, 1, 9, 2, 8], [5, 10, 12, 7, 6]], "times": [22.258, 24.821], "profit": 190.0, "focus": [], "removed": [[3, 1], [11, 9]], "added": [[3, 11], [1, 9]], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 2", "text": "Les arêtes (d,5) et (10,12) se croisent ou sont mal ordonnées. On les remplace par (d,10) et (5,12) en inversant le morceau entre les deux. Gain de temps : 0.14. Le profit ne change pas, mais on libère du temps.", "routes": [[3, 11, 1, 9, 2, 8], [10, 5, 12, 7, 6]], "times": [22.258, 24.681], "profit": 190.0, "focus": [], "removed": [[0, 5], [10, 12]], "added": [[0, 10], [5, 12]], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 2", "text": "Les arêtes (5,12) et (6,a) se croisent ou sont mal ordonnées. On les remplace par (5,6) et (12,a) en inversant le morceau entre les deux. Gain de temps : 2.09. Le profit ne change pas, mais on libère du temps.", "routes": [[3, 11, 1, 9, 2, 8], [10, 5, 6, 7, 12]], "times": [22.258, 22.588], "profit": 190.0, "focus": [], "removed": [[5, 12], [6, 13]], "added": [[5, 6], [12, 13]], "candidates": null, "giant": null}, {"phase": "2-opt", "title": "2-opt sur le véhicule 2", "text": "Les arêtes (d,10) et (5,6) se croisent ou sont mal ordonnées. On les remplace par (d,5) et (10,6) en inversant le morceau entre les deux. Gain de temps : 0.50. Le profit ne change pas, mais on libère du temps.", "routes": [[3, 11, 1, 9, 2, 8], [5, 10, 6, 7, 12]], "times": [22.258, 22.086], "profit": 190.0, "focus": [], "removed": [[0, 10], [5, 6]], "added": [[0, 5], [10, 6]], "candidates": null, "giant": null}, {"phase": "Remplacement", "title": "Remplace le client 11 par le client 4", "text": "On retire le client 11 (P = 20) et on met à la place le client non servi 4 (P = 25), la tournée reste ≤ L. Profit : 190 → 195.", "routes": [[3, 1, 9, 2, 4, 8], [5, 10, 6, 7, 12]], "times": [23.515, 22.086], "profit": 195.0, "focus": [4, 11], "removed": [], "added": [], "candidates": null, "giant": null}, {"phase": "Fin", "title": "Optimum local atteint", "text": "Plus aucun mouvement n'améliore la solution. Profit final : 195.", "routes": [[3, 1, 9, 2, 4, 8], [5, 10, 6, 7, 12]], "times": [23.515, 22.086], "profit": 195.0, "focus": [], "removed": [], "added": [], "candidates": null, "giant": null}]}]};
+const inst = DATA.instance;
+const NS = "http://www.w3.org/2000/svg";
+const VCOL = ["var(--v1)", "var(--v2)", "var(--v3)", "var(--v4)"];
+const PHASE_COL = { "Construction": "var(--accent)", "Recherche locale": "var(--muted)", "2-opt": "var(--v3)",
+  "Insertion": "var(--good)", "Remplacement": "var(--v4)", "Déplacement": "var(--v2)", "Échange": "var(--v2)", "Fin": "var(--fg)" };
+const optimum = DATA.plne.profit;
+let sc = 0, st = 0, timer = null;
+
+const $ = id => document.getElementById(id);
+const X = i => inst.coords[i][0], Y = i => 10 - inst.coords[i][1];   // y vers le haut
+const lbl = i => i === inst.d ? "d" : i === inst.a ? "a" : String(i);
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+$("sub").innerHTML = `Instance de test : <b>n = ${inst.n}</b> clients, <b>m = ${inst.m}</b> véhicules, <b>L = ${inst.L}</b>, départ et arrivée au même point. Profit optimal (PLNE) : <b>${optimum}</b>.`;
+
+// onglets
+DATA.scenarios.forEach((s, k) => {
+  const b = document.createElement("button");
+  b.textContent = s.label; b.id = "tab-" + s.key;
+  b.onclick = () => { sc = k; st = 0; stop(); render(); };
+  $("tabs").appendChild(b);
+});
+
+// légende
+$("legend").innerHTML =
+  Array.from({ length: inst.m }, (_, k) => `<span><i class="sw" style="border-color:${VCOL[k]}"></i>Véhicule ${k + 1}</span>`).join("") +
+  `<span><i class="dot" style="background:var(--off)"></i>Non servi</span>` +
+  `<span><i class="sw dash" style="border-color:var(--bad)"></i>Arc supprimé</span>` +
+  `<span><i class="sw dash" style="border-color:var(--muted)"></i>Tour géant</span>` +
+  `<span><i class="sw dash" style="border-color:var(--good)"></i>Optimum PLNE</span>` +
+  `<span>Taille du disque = profit</span>`;
+
+// phases (légende de la frise)
+const phasesUsed = [...new Set(DATA.scenarios.flatMap(s => s.steps.map(x => x.phase)))];
+$("phases").innerHTML = phasesUsed.map(p => `<span><i class="dot" style="background:${PHASE_COL[p] || "var(--accent)"}"></i>${p}</span>`).join("");
+
+function arrowMarkers(defs) {
+  VCOL.forEach((c, k) => {
+    const m = el("marker", { id: "arr" + k, viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "4.5", markerHeight: "4.5", orient: "auto-start-reverse" }, defs);
+    el("path", { d: "M0,0 L10,5 L0,10 z", style: `fill:${c}` }, m);
+  });
+}
+
+// point de fin d'un arc raccourci pour ne pas entrer dans le disque
+function radius(i) { return (i === inst.d || i === inst.a) ? 0.32 : 0.16 + 0.045 * Math.sqrt(inst.P[i]); }
+function seg(i, j, shrinkEnd = true) {
+  const x1 = X(i), y1 = Y(i), x2 = X(j), y2 = Y(j);
+  const L = Math.hypot(x2 - x1, y2 - y1) || 1;
+  const r1 = radius(i) + 0.04, r2 = shrinkEnd ? radius(j) + 0.08 : 0;
+  return [x1 + (x2 - x1) * r1 / L, y1 + (y2 - y1) * r1 / L, x2 - (x2 - x1) * r2 / L, y2 - (y2 - y1) * r2 / L];
+}
+
+function drawMap(step) {
+  const svg = $("svg"); svg.innerHTML = "";
+  const defs = el("defs", {}, svg); arrowMarkers(defs);
+  // quadrillage unitaire (comme les figures d'annales)
+  for (let v = 0; v <= 10; v++) {
+    el("line", { x1: v, y1: 0, x2: v, y2: 10, class: "gridl" + (v === 0 ? " ax" : "") }, svg);
+    el("line", { x1: 0, y1: v, x2: 10, y2: v, class: "gridl" + (v === 10 ? " ax" : "") }, svg);
+    if (v % 2 === 0) {
+      el("text", { x: v, y: 10.55, class: "axlbl", "text-anchor": "middle" }, svg).textContent = v;
+      el("text", { x: -0.35, y: 10 - v + 0.1, class: "axlbl", "text-anchor": "end" }, svg).textContent = v;
+    }
+  }
+  const served = new Map();
+  step.routes.forEach((r, k) => r.forEach(i => served.set(i, k)));
+
+  // tour géant
+  if (step.giant) {
+    const pts = [inst.d, ...step.giant].map(i => `${X(i)},${Y(i)}`).join(" ");
+    el("polyline", { points: pts, class: "giant" }, svg);
+    step.giant.forEach((i, q) => {
+      const t = el("text", { x: X(i) + radius(i) + 0.05, y: Y(i) + radius(i) + 0.18, class: "gnum" }, svg); t.textContent = "#" + (q + 1);
+    });
+  }
+  // optimum PLNE
+  if ($("showplne").checked) {
+    DATA.plne.routes.forEach(r => {
+      const p = [inst.d, ...r, inst.a].map(i => `${X(i)},${Y(i)}`).join(" ");
+      el("polyline", { points: p, class: "plne" }, svg);
+    });
+  }
+  // arcs supprimés
+  step.removed.forEach(([i, j]) => { const [a, b, c, d] = seg(i, j, false); el("line", { x1: a, y1: b, x2: c, y2: d, class: "removed" }, svg); });
+  // halo des arcs ajoutés
+  step.added.forEach(([i, j]) => {
+    const k = served.get(i) ?? served.get(j) ?? 0;
+    const [a, b, c, d] = seg(i, j, false); el("line", { x1: a, y1: b, x2: c, y2: d, class: "added", style: `stroke:${VCOL[k]}` }, svg);
+  });
+  // tournées
+  step.routes.forEach((r, k) => {
+    const path = [inst.d, ...r, inst.a];
+    for (let q = 0; q < path.length - 1; q++) {
+      if (path[q] === path[q + 1]) continue;
+      const [a, b, c, d] = seg(path[q], path[q + 1]);
+      el("line", { x1: a, y1: b, x2: c, y2: d, class: "route", style: `stroke:${VCOL[k]}`, "marker-end": `url(#arr${k})` }, svg);
+    }
+  });
+  // clients
+  inst.clients = inst.clients || Array.from({ length: inst.n }, (_, q) => q + 1);
+  inst.clients.forEach(i => {
+    const g = el("g", { class: "node" + (served.has(i) ? "" : " off") }, svg);
+    const col = served.has(i) ? VCOL[served.get(i)] : "var(--off)";
+    el("circle", { cx: X(i), cy: Y(i), r: radius(i), style: `fill:${col}` }, g);
+    el("text", { x: X(i), y: Y(i), class: "id" }, g).textContent = i;
+    el("text", { x: X(i) + radius(i) + 0.06, y: Y(i) - radius(i) + 0.02, class: "p" }, g).textContent = "P" + inst.P[i];
+    if (step.focus.includes(i)) el("circle", { cx: X(i), cy: Y(i), r: radius(i) + 0.14, class: "focus" }, svg);
+  });
+  // dépôt
+  const g = el("g", { class: "depot" }, svg);
+  el("rect", { x: X(inst.d) - 0.3, y: Y(inst.d) - 0.3, width: 0.6, height: 0.6, rx: 0.08 }, g);
+  el("text", { x: X(inst.d), y: Y(inst.d) }, g).textContent = "d=a";
+}
+
+function render() {
+  const S = DATA.scenarios[sc], step = S.steps[st];
+  document.querySelectorAll("#tabs button").forEach((b, k) => b.setAttribute("aria-pressed", k === sc));
+  drawMap(step);
+  const chip = $("chip"); chip.textContent = step.phase; chip.style.setProperty("--chip", PHASE_COL[step.phase] || "var(--accent)");
+  $("count").textContent = `étape ${st + 1} / ${S.steps.length}`;
+  $("title").textContent = step.title;
+  $("text").textContent = step.text;
+  $("profit").textContent = step.profit;
+  const gap = optimum - step.profit;
+  $("pref").textContent = gap <= 1e-9 ? `= optimum PLNE (${optimum})` : `optimum PLNE : ${optimum} (écart ${gap})`;
+  $("pbar").style.width = (100 * step.profit / optimum) + "%";
+  $("veh").innerHTML = step.routes.map((r, k) => {
+    const t = step.times[k], over = t > inst.L + 1e-6, pc = Math.min(100, 100 * t / inst.L);
+    const prof = r.reduce((s, i) => s + inst.P[i], 0);
+    return `<span class="name"><i class="dot" style="background:${VCOL[k]}"></i>Véh. ${k + 1}</span>
+      <span class="tbar" title="${t.toFixed(2)} / ${inst.L}"><i style="width:${pc}%;background:${over ? "var(--bad)" : VCOL[k]}"></i></span>
+      <span class="num">${t.toFixed(2)} / ${inst.L}</span>
+      <span class="seq">d → ${r.length ? r.join(" → ") : "(vide)"} → a · profit ${prof}</span>`;
+  }).join("");
+  const served = new Set(step.routes.flat());
+  const un = Array.from({ length: inst.n }, (_, q) => q + 1).filter(i => !served.has(i));
+  $("unserved").textContent = un.length ? `Non servis : ${un.map(i => `${i} (P${inst.P[i]})`).join(", ")}` : "Tous les clients sont servis.";
+  const cc = $("candcard");
+  if (step.candidates && step.candidates.length) {
+    cc.hidden = false;
+    $("cand").innerHTML = `<thead><tr><th>Client</th><th>P</th><th>Détour</th><th>Ratio</th></tr></thead><tbody>` +
+      step.candidates.map((c, q) => `<tr class="${q === 0 ? "win" : ""}"><td>${c.j}${q === 0 ? " ✓" : ""}</td><td>${c.P}</td><td>${c.delta.toFixed(2)}</td><td>${c.score.toFixed(2)}</td></tr>`).join("") + `</tbody>`;
+  } else cc.hidden = true;
+  // frise
+  const tl = $("timeline"); tl.innerHTML = "";
+  S.steps.forEach((x, q) => {
+    const b = document.createElement("button");
+    b.style.setProperty("--c", PHASE_COL[x.phase] || "var(--accent)");
+    b.className = q === st ? "on" : q < st ? "past" : "";
+    b.title = `${q + 1}. ${x.title}`; b.setAttribute("aria-label", b.title);
+    b.onclick = () => { st = q; stop(); render(); };
+    tl.appendChild(b);
+  });
+  $("play").textContent = timer ? "❚❚ Pause" : (st === S.steps.length - 1 ? "↺ Rejouer" : "▶ Lecture");
+}
+
+function go(d) { const n = DATA.scenarios[sc].steps.length; st = Math.max(0, Math.min(n - 1, st + d)); render(); }
+function stop() { if (timer) { clearInterval(timer); timer = null; } }
+function play() {
+  const n = DATA.scenarios[sc].steps.length;
+  if (timer) { stop(); render(); return; }
+  if (st === n - 1) st = 0;
+  timer = setInterval(() => { if (st >= DATA.scenarios[sc].steps.length - 1) { stop(); render(); return; } go(1); }, +$("speed").value);
+  render();
+}
+$("first").onclick = () => { stop(); st = 0; render(); };
+$("last").onclick = () => { stop(); st = DATA.scenarios[sc].steps.length - 1; render(); };
+$("prev").onclick = () => { stop(); go(-1); };
+$("next").onclick = () => { stop(); go(1); };
+$("play").onclick = play;
+$("speed").oninput = () => { if (timer) { stop(); play(); } };
+$("showplne").onchange = render;
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowRight") { stop(); go(1); }
+  else if (e.key === "ArrowLeft") { stop(); go(-1); }
+  else if (e.key === " ") { e.preventDefault(); play(); }
+});
+render();
+</script>
+
+</body></html>

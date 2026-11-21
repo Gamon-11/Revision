@@ -1,0 +1,260 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}</style></head><body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<title>Atelier Gillett-Miller + Fletcher</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : tableau (grille + balayage) à gauche, notes de correction à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board,.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0}
+.board{padding:10px}
+.notes{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:4px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.enonce{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.phase{font-family:var(--font-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+tr.cur td{background:var(--accent-soft)}
+tr.ok td{color:var(--ok);font-weight:600}
+tr.cyc td{color:var(--no)}
+tr.deg td{color:var(--muted)}
+tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+.sub{font-family:var(--font-display);font-size:.95rem;margin:4px 0 0}
+.chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--muted);margin:6px 4px 0}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.ans{font-size:.92rem;display:flex;flex-direction:column;gap:6px}
+.ans p{margin:0}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Atelier Gillett-Miller + Fletcher</h1>
+    <p>Balayage pour former les clusters, puis heuristique de Fletcher (arêtes les plus courtes d'abord) dans chaque cluster. Choisis un onglet puis avance avec « Étape suivante » ou les flèches du clavier. Fais l'étape sur ta feuille avant de cliquer.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3 id="gtitle">Grille</h3><span class="badge" id="gbadge"></span></div>
+      <svg id="g" viewBox="0 0 600 600" role="img" aria-label="Grille de l'exercice"></svg>
+      <div class="legend">
+        <span><i style="border-color:var(--ink);border-top-style:dashed"></i>axe de balayage</span>
+        <span><i style="border-color:var(--r1)"></i>cluster 1</span>
+        <span><i style="border-color:var(--r2)"></i>cluster 2</span>
+        <span><i style="border-color:var(--r3)"></i>cluster 3</span>
+        <span><i style="border-color:var(--no);border-top-style:dotted"></i>refusée (sous-cycle)</span>
+      </div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="dname"></h2>
+      <div class="enonce" id="denonce"></div>
+      <div class="phase" id="sphase"></div>
+      <div class="step" id="stext"></div>
+      <div id="extra"></div>
+      <details class="rule"><summary><b>La méthode</b></summary><ol>
+        <li><b>Gillett-Miller (balayage)</b> : calculer l'angle de chaque client vu du dépôt, mesuré depuis l'axe initial dans le sens de rotation. Un point sur l'axe a l'angle 0 et passe en premier.</li>
+        <li>Prendre les clients dans cet ordre et les ajouter au cluster courant tant que la charge reste ≤ Q. Sinon, fermer le cluster et en ouvrir un nouveau.</li>
+        <li><b>Fletcher</b> dans chaque cluster (dépôt inclus) : trier toutes les arêtes par longueur croissante.</li>
+        <li>Prendre une arête si ses deux extrémités ont un degré &lt; 2 et si elle ne ferme pas un sous-cycle. Seule la toute dernière arête a le droit de fermer le cycle hamiltonien.</li>
+        <li>S'arrêter quand on a autant d'arêtes que de sommets. Distance totale = somme des tournées.</li>
+      </ol><p style="margin:6px 0 0">Ex æquo : quand plusieurs arêtes ont la même longueur, le résultat peut changer selon l'ordre choisi. Ici on départage par numéro (D d'abord, puis 1, 2, …), sauf dans l'onglet « autre départage ». Annonce toujours ta règle sur la copie.</p></details>
+    </div>
+  </div>
+</div>
+<script>
+const C=['var(--r1)','var(--r2)','var(--r3)','var(--r4)'];
+const ANN={1:[3,8],2:[6,8],3:[1,7],4:[8,6],5:[1,4],6:[8,3],7:[2,2],8:[3,1],9:[4,1],10:[6,1],11:[1,0],12:[3,0],13:[5,0]};
+const ANNP=[[4,4],...Object.values(ANN)];
+const ANNQ=[0,2,1,1,2,1,1,1,1,1,1,1,1,1];
+const ENO='Annale, exercice IV (copie 3). 13 clients, 2 véhicules de capacité Q = 8, demandes entre parenthèses, distances euclidiennes sur une grille unitaire. Dépôt D en (4, 4).';
+const Q2='<p><b>Question 2.</b> Le résultat dépend fortement de la position initiale de l\'axe : 36,69 avec l\'axe de la figure 2, 44,03 avec celui de la figure 3 (+20 %). Le découpage de la figure 3 sépare des clients voisins (13 de 9 et 12, 3 de 1) et force des arêtes longues comme 3-11 (7). Fletcher étant glouton, il dépend aussi de l\'ordre des ex æquo (40,03 avec un autre départage).</p>';
+const Q3='<p><b>Question 3.</b> Deux améliorations en gardant Fletcher :</p><p>1. Essayer toutes les positions de départ de l\'axe (un axe par client, dans les deux sens de rotation), appliquer GM + Fletcher à chaque fois et garder la meilleure solution.</p><p>2. Après Fletcher, améliorer : 2-opt dans chaque tournée, puis déplacements ou échanges de clients entre clusters en respectant Q (par exemple passer 13 dans le cluster de 9 et 12).</p>';
+const DATA=[
+ {name:'Annale : axe fig. 2',enonce:ENO+' Axe initial de la figure 2 : vers l\'ouest (de D vers 5), rotation dans le sens horaire.',
+  P:ANNP,q:ANNQ,Q:8,W:9,H:9,axis:[-1,0],cw:true,concl:Q2},
+ {name:'Annale : axe fig. 3',enonce:ENO+' Axe initial de la figure 3 : de D vers 1, rotation dans le sens horaire. Le point 1, sur l\'axe, fait partie du premier cluster.',
+  P:ANNP,q:ANNQ,Q:8,W:9,H:9,axis:[-1,4],cw:true,concl:Q2+Q3},
+ {name:'Fig. 3, autre départage',enonce:ENO+' Même axe que la figure 3, mais on départage les ex æquo autrement dans le cluster 2 : 7-11 avant 7-9 (longueur √5), puis D-9 et 3-5 avant D-5 (longueur 3). Le résultat change.',
+  P:ANNP,q:ANNQ,Q:8,W:9,H:9,axis:[-1,4],cw:true,prefer:[[7,11],[0,9],[3,5]],
+  concl:'<p>Avec ce départage, Fletcher trouve la tournée optimale du cluster 2 (18,71 au lieu de 22,71). Le total passe à 40,03, toujours plus que les 36,69 de la figure 2. La conclusion de la question 2 ne change pas, mais il faut annoncer la règle de départage sur la copie.</p>'},
+ {name:'Entraînement',enonce:'Exercice inventé dans le style des annales. 9 clients, véhicules de capacité Q = 5, dépôt D en (3, 3). Axe initial vers le nord, rotation dans le sens trigonométrique (anti-horaire). Combien de véhicules faut-il, et quelle distance totale ?',
+  P:[[3,3],[1,5],[4,6],[6,5],[5,3],[6,1],[3,0],[1,1],[0,3],[2,5]],q:[0,2,1,2,1,2,1,2,1,1],Q:5,W:6,H:6,axis:[0,1],cw:false,
+  concl:'<p>Demande totale 13 pour Q = 5 : il faut au moins 3 véhicules, et le balayage en donne bien 3. Compare chaque tournée Fletcher à l\'optimum du cluster dans le tableau.</p>'}
+];
+const nm=i=>i===0?'D':String(i);
+const fx=(x,d=2)=>x.toFixed(d).replace('.',',');
+function sq(ds,a,b){const dx=ds.P[a][0]-ds.P[b][0],dy=ds.P[a][1]-ds.P[b][1];return dx*dx+dy*dy}
+function rad(n){let a=1,b=n;for(let k=2;k*k<=b;k++)while(b%(k*k)===0){b/=k*k;a*=k}return [a,b]}
+function exact(n){const [a,b]=rad(n);return b===1?String(a):(a===1?'':a)+'√'+b}
+function sumExact(list){const m={};list.forEach(n=>{const [a,b]=rad(n);m[b]=(m[b]||0)+a});
+  return Object.keys(m).map(Number).sort((x,y)=>x-y).map(b=>b===1?String(m[b]):(m[b]===1?'':m[b])+'√'+b).join(' + ')}
+function perms(a){if(a.length<=1)return [a];const out=[];a.forEach((x,i)=>perms(a.slice(0,i).concat(a.slice(i+1))).forEach(p=>out.push([x,...p])));return out}
+
+function run(ds){
+  const n=ds.P.length,D=ds.P[0];const steps=[];
+  const ang0=Math.atan2(ds.axis[1],ds.axis[0]);
+  const rel=i=>[ds.P[i][0]-D[0],ds.P[i][1]-D[1]];
+  const angs=[];for(let i=1;i<n;i++){const [x,y]=rel(i);let a=(ds.cw?ang0-Math.atan2(y,x):Math.atan2(y,x)-ang0)*180/Math.PI;a=((a%360)+360)%360;if(a>359.999999)a=0;if(a<1e-9)a=0;angs.push({i,a,r:Math.hypot(x,y)})}
+  angs.sort((u,v)=>u.a-v.a||u.r-v.r);
+  const clusterOf={};const clusters=[];let load=0;const rows=[];
+  const base=x=>Object.assign({phase:'sweep',clusterOf:Object.assign({},clusterOf),rows:rows.slice()},x);
+  steps.push(base({ray:null,text:`On place l'axe initial (pointillés) et on fait tourner un rayon autour de D dans le sens <b>${ds.cw?'horaire':'trigonométrique'}</b>. Pour chaque client, on mesure l'angle depuis l'axe. Capacité Q = ${ds.Q}, demande totale = ${ds.q.reduce((s,x)=>s+x,0)}.`}));
+  for(const {i,a} of angs){let txt;
+    if(!clusters.length||load+ds.q[i]>ds.Q){if(clusters.length)txt=`Client <b>${i}</b> (angle ${fx(a,1)}°, demande ${ds.q[i]}) : ${load} + ${ds.q[i]} = ${load+ds.q[i]} &gt; ${ds.Q}, <b>on ferme le cluster ${clusters.length}</b> (charge ${load}) et on ouvre le cluster ${clusters.length+1}.`;
+      clusters.push([]);load=0}
+    clusters[clusters.length-1].push(i);load+=ds.q[i];clusterOf[i]=clusters.length-1;
+    rows.push({i,a,q:ds.q[i],load,c:clusters.length});
+    if(!txt)txt=`Client <b>${i}</b> : angle ${fx(a,1)}°${a===0?' (sur l\'axe, donc premier)':''}, demande ${ds.q[i]}. Charge du cluster ${clusters.length} : <b>${load} / ${ds.Q}</b>${load===ds.Q?', il est plein':''}.`;
+    steps.push(base({ray:i,text:txt}))}
+  steps.push(base({ray:null,text:`<b>Clusters obtenus</b> : ${clusters.map((c,k)=>`C${k+1} = {${c.join(', ')}} (charge ${c.reduce((s,x)=>s+ds.q[x],0)})`).join(' ; ')}. On applique maintenant Fletcher dans chaque cluster, dépôt compris.`}));
+  // Fletcher
+  const pref=(ds.prefer||[]).map(([a,b])=>Math.min(a,b)+','+Math.max(a,b));
+  const tours=[];const results=[];
+  clusters.forEach((cl,k)=>{
+    const nodes=[0,...cl].sort((a,b)=>a-b);const m=nodes.length;
+    const E=[];for(let x=0;x<m;x++)for(let y=x+1;y<m;y++){const a=nodes[x],b=nodes[y];const key=a+','+b;const pi=pref.indexOf(key);E.push({a,b,s:sq(ds,a,b),p:pi<0?99:pi})}
+    E.sort((u,v)=>u.s-v.s||u.p-v.p||u.a-v.a||u.b-v.b);
+    const deg={},par={};nodes.forEach(x=>{deg[x]=0;par[x]=x});const f=x=>par[x]===x?x:(par[x]=f(par[x]));
+    const sel=[];const tab=[];let pend=[];
+    const fs=x=>Object.assign({phase:'fletcher',k,cl:nodes,clusterOf:Object.assign({},clusterOf),sel:sel.slice(),tab:tab.slice(),done:tours.slice()},x);
+    steps.push(fs({text:`<b>Cluster ${k+1}</b> : sommets {${nodes.map(nm).join(', ')}}, il faut ${m} arêtes. On trie les ${E.length} arêtes par longueur croissante et on les examine dans l'ordre.`}));
+    for(const e of E){if(sel.length===m)break;const lab=nm(e.a)+'-'+nm(e.b);
+      if(deg[e.a]>=2||deg[e.b]>=2){tab.push({lab,s:e.s,st:'deg'});pend.push(lab);continue}
+      const pre=pend.length?`Ignorées car une extrémité est déjà de degré 2 : ${pend.join(', ')}. `:'';pend=[];
+      if(f(e.a)===f(e.b)&&sel.length<m-1){tab.push({lab,s:e.s,st:'cyc'});
+        steps.push(fs({cur:[e.a,e.b],ok:false,tab:tab.slice(),text:`${pre}Arête <b>${lab}</b> (${exact(e.s)} ≈ ${fx(Math.sqrt(e.s))}) : <b>refusée</b>, ${nm(e.a)} et ${nm(e.b)} sont déjà dans la même chaîne, elle fermerait un sous-cycle sans passer par tous les sommets.`}));continue}
+      deg[e.a]++;deg[e.b]++;par[f(e.a)]=f(e.b);sel.push([e.a,e.b,e.s]);tab.push({lab,s:e.s,st:'ok'});
+      const last=sel.length===m;
+      steps.push(fs({cur:[e.a,e.b],ok:true,sel:sel.slice(),tab:tab.slice(),text:`${pre}Arête <b>${lab}</b> (${exact(e.s)} ≈ ${fx(Math.sqrt(e.s))}) : <b>prise</b>${last?', c\'est la dernière, elle ferme le cycle hamiltonien':''}. ${sel.length} arête${sel.length>1?'s':''} sur ${m}.`}))}
+    // tour order
+    const adj={};nodes.forEach(x=>adj[x]=[]);sel.forEach(([a,b])=>{adj[a].push(b);adj[b].push(a)});
+    const t=[0];let prev=-1,cur=0;const st=adj[0].slice().sort((a,b)=>a-b);let nx=st[0];while(nx!==0){t.push(nx);const o=adj[nx].find(y=>y!==cur);cur=nx;nx=o}t.push(0);
+    const len=sel.reduce((s,e)=>s+Math.sqrt(e[2]),0);
+    let best=Infinity,bt=null;perms(cl).forEach(p=>{const tt=[0,...p,0];let L=0;for(let i=0;i<tt.length-1;i++)L+=Math.sqrt(sq(ds,tt[i],tt[i+1]));if(L<best-1e-9){best=L;bt=tt}});
+    const ex=sumExact(sel.map(e=>e[2]));
+    tours.push({k,t,len,ex,sq:sel.map(e=>e[2])});results.push({k,cl,load:cl.reduce((s,x)=>s+ds.q[x],0),t,len,ex,best,bt});
+    steps.push(fs({sel:sel.slice(),tab:tab.slice(),done:tours.slice(),text:`<b>Tournée ${k+1}</b> : ${t.map(nm).join(' → ')}.<br>Longueur = ${ex} ≈ <b>${fx(len)}</b>.${Math.abs(best-len)<1e-6?' C\'est l\'optimum de ce cluster.':` L'optimum du cluster vaut ${fx(best)} (${bt.map(nm).join(' → ')}).`}`}))
+  });
+  const tot=results.reduce((s,r)=>s+r.len,0);const totEx=sumExact(tours.flatMap(t=>t.sq));
+  steps.push({phase:'final',clusterOf,done:tours,results,text:`<b>Distance totale</b> = ${results.map(r=>fx(r.len)).join(' + ')} = ${totEx} ≈ <b>${fx(tot)}</b>.`,concl:ds.concl});
+  return steps;
+}
+
+const $=id=>document.getElementById(id);const NS='http://www.w3.org/2000/svg';
+function el(t,a,p,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!==undefined)e.textContent=txt;p.appendChild(e);return e}
+let DS=null,S=null,k=0;const s=56,pad=50;
+const px=p=>[pad+p[0]*s,pad+(DS.H-p[1])*s];
+function drawGraph(st){
+  const svg=$('g');svg.innerHTML='';const W=2*pad+DS.W*s,H=2*pad+DS.H*s;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  for(let i=0;i<=DS.W;i++)el('line',{x1:pad+i*s,y1:pad,x2:pad+i*s,y2:pad+DS.H*s,stroke:'var(--grid)'},svg);
+  for(let i=0;i<=DS.H;i++)el('line',{x1:pad,y1:pad+i*s,x2:pad+DS.W*s,y2:pad+i*s,stroke:'var(--grid)'},svg);
+  const d0=px(DS.P[0]);
+  const ray=(vx,vy,o)=>{const L=Math.hypot(vx,vy);const R=Math.max(DS.W,DS.H)*s;el('line',Object.assign({x1:d0[0],y1:d0[1],x2:d0[0]+vx/L*R,y2:d0[1]-vy/L*R},o),svg)};
+  const cid=i=>st.clusterOf[i];
+  if(st.phase==='sweep'){
+    ray(DS.axis[0],DS.axis[1],{stroke:'var(--ink)','stroke-width':2.5,'stroke-dasharray':'8 6'});
+    // rotation arrow
+    const a0=Math.atan2(DS.axis[1],DS.axis[0]),sg=DS.cw?-1:1,r=60;const a1=a0+sg*0.7;
+    const p0=[d0[0]+r*Math.cos(a0),d0[1]-r*Math.sin(a0)],p1=[d0[0]+r*Math.cos(a1),d0[1]-r*Math.sin(a1)];
+    el('path',{d:`M${p0[0]},${p0[1]} A${r},${r} 0 0 ${DS.cw?1:0} ${p1[0]},${p1[1]}`,fill:'none',stroke:'var(--accent)','stroke-width':2.5},svg);
+    const ta=a1+sg*Math.PI/2;const hx=Math.cos(ta),hy=-Math.sin(ta);
+    el('path',{d:`M${p1[0]+hx*9},${p1[1]+hy*9} L${p1[0]-hy*6},${p1[1]+hx*6} L${p1[0]+hy*6},${p1[1]-hx*6} Z`,fill:'var(--accent)'},svg);
+    if(st.ray){const [x,y]=[DS.P[st.ray][0]-DS.P[0][0],DS.P[st.ray][1]-DS.P[0][1]];ray(x,y,{stroke:C[cid(st.ray)],'stroke-width':3,opacity:.85})}
+  }
+  if(st.done)st.done.forEach(t=>{const faded=st.phase==='fletcher';for(let i=0;i<t.t.length-1;i++){const a=px(DS.P[t.t[i]]),b=px(DS.P[t.t[i+1]]);el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:C[t.k],'stroke-width':faded?2:3.5,opacity:faded?.35:1,'stroke-linecap':'round'},svg)}});
+  const lbl=(a,b,c)=>{const A=px(DS.P[a]),B=px(DS.P[b]);const x=(A[0]+B[0])/2,y=(A[1]+B[1])/2;el('rect',{x:x-20,y:y-9,width:40,height:17,rx:4,fill:'var(--paper)',stroke:c,'stroke-width':1},svg);
+    el('text',{x,y:y+4,'text-anchor':'middle','font-size':11,'font-family':'JetBrains Mono, monospace','font-weight':600,fill:c},svg,fx(Math.sqrt(sq(DS,a,b))))};
+  if(st.phase==='fletcher'){
+    st.sel.forEach(([a,b])=>{const A=px(DS.P[a]),B=px(DS.P[b]);el('line',{x1:A[0],y1:A[1],x2:B[0],y2:B[1],stroke:C[st.k],'stroke-width':3.5,'stroke-linecap':'round'},svg)});
+    if(st.cur){const [a,b]=st.cur;const A=px(DS.P[a]),B=px(DS.P[b]);el('line',{x1:A[0],y1:A[1],x2:B[0],y2:B[1],stroke:st.ok?'var(--ok)':'var(--no)','stroke-width':5,'stroke-dasharray':st.ok?'':'4 6','stroke-linecap':'round'},svg);lbl(a,b,st.ok?'var(--ok)':'var(--no)')}}
+  const inCl=new Set(st.phase==='fletcher'?st.cl:[]);
+  for(let i=0;i<DS.P.length;i++){const [x,y]=px(DS.P[i]);const g=el('g',{opacity:st.phase==='fletcher'&&!inCl.has(i)?.3:1},svg);
+    if(i===0){el('rect',{x:x-13,y:y-13,width:26,height:26,rx:5,fill:'var(--ink)'},g);el('text',{x,y:y+5,'text-anchor':'middle','font-size':14,'font-weight':700,'font-family':'Space Grotesk, sans-serif',fill:'var(--paper)'},g,'D');continue}
+    const c=cid(i)!==undefined?C[cid(i)]:null;
+    el('circle',{cx:x,cy:y,r:13,fill:c||'var(--paper)',stroke:c||'var(--ink)','stroke-width':1.8},g);
+    el('text',{x,y:y+5,'text-anchor':'middle','font-size':i>9?11:13,'font-weight':700,'font-family':'Space Grotesk, sans-serif',fill:c?'var(--paper)':'var(--ink)'},g,String(i));
+    el('text',{x:x+15,y:y+17,'font-size':11,'font-family':'JetBrains Mono, monospace',fill:'var(--muted)'},g,`(${DS.q[i]})`)}
+}
+function drawExtra(st){let h='';
+  if(st.phase==='sweep'&&st.rows.length){h+='<p class="sub">Ordre de balayage</p><div class="tbl"><table><thead><tr><th>Client</th><th>Angle</th><th>Demande</th><th>Charge</th><th>Cluster</th></tr></thead><tbody>'+
+    st.rows.map((r,i)=>`<tr class="${i===st.rows.length-1&&st.ray?'cur':''}"><td>${r.i}</td><td>${fx(r.a,1)}°</td><td>${r.q}</td><td>${r.load} / ${DS.Q}</td><td><span class="chip" style="background:${C[r.c-1]}"></span>C${r.c}</td></tr>`).join('')+'</tbody></table></div>'}
+  if(st.phase==='fletcher'&&st.tab.length){h+=`<p class="sub">Arêtes du cluster ${st.k+1}, par longueur croissante</p><div class="tbl"><table><thead><tr><th>Arête</th><th>Longueur</th><th>≈</th><th>Décision</th></tr></thead><tbody>`+
+    st.tab.map((r,i)=>`<tr class="${i===st.tab.length-1&&st.cur?'cur ':''}${r.st}"><td>${r.lab}</td><td>${exact(r.s)}</td><td>${fx(Math.sqrt(r.s))}</td><td>${r.st==='ok'?'prise':r.st==='cyc'?'refusée (sous-cycle)':'ignorée (degré 2)'}</td></tr>`).join('')+'</tbody></table></div>'}
+  if(st.phase==='final'){const tot=st.results.reduce((s,r)=>s+r.len,0),tb=st.results.reduce((s,r)=>s+r.best,0);
+    h+='<p class="sub">Récapitulatif</p><div class="tbl"><table><thead><tr><th>Cluster</th><th>Charge</th><th>Tournée Fletcher</th><th>Longueur</th><th>Optimum</th></tr></thead><tbody>'+
+    st.results.map(r=>`<tr><td><span class="chip" style="background:${C[r.k]}"></span>C${r.k+1}</td><td>${r.load} / ${DS.Q}</td><td>${r.t.map(nm).join('-')}</td><td>${r.ex} ≈ ${fx(r.len)}</td><td>${fx(r.best)}</td></tr>`).join('')+
+    `<tr class="tot"><td>Total</td><td></td><td></td><td>${fx(tot)}</td><td>${fx(tb)}</td></tr></tbody></table></div>`;
+    if(st.concl)h+='<div class="ans">'+st.concl+'</div>'}
+  $('extra').innerHTML=h}
+function show(){const st=S[k];drawGraph(st);drawExtra(st);$('stext').innerHTML=st.text;
+  $('sphase').textContent=st.phase==='sweep'?'Étape 1 · Balayage de Gillett-Miller':st.phase==='fletcher'?`Étape 2 · Fletcher, cluster ${st.k+1}`:'Résultat';
+  $('gbadge').textContent='grille unitaire, dépôt = carré noir, (demande)';
+  $('count').textContent=`Étape ${k+1} / ${S.length}`;$('slider').max=S.length-1;$('slider').value=k;
+  $('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===S.length-1}
+function pick(i){DS=DATA[i];S=run(DS);k=0;$('dname').textContent=DS.name;$('denonce').textContent=DS.enonce;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));try{localStorage.setItem('gmf-tab',String(i))}catch(e){}show()}
+DATA.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=d.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<S.length-1){k++;show()}};$('prev').onclick=()=>{if(k>0){k--;show()}};$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')$('next').click();else if(e.key==='ArrowLeft')$('prev').click()});
+let s0=0;try{const x=+localStorage.getItem('gmf-tab');if(x>=0&&x<DATA.length)s0=x}catch(e){}
+pick(s0);
+</script>
+
+</body></html>

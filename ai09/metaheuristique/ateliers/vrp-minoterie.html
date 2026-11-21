@@ -1,0 +1,389 @@
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<title>Atelier VRP minoterie</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: carte quadrillée (papier millimétré) à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00; --r5:#1f7fb0; --r6:#c2337a; --r7:#5f7d12; --r8:#8a5a2b;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#8a97a8;
+  --font-display:"Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e; --r5:#5cc0f2; --r6:#ff7eb6; --r7:#b5d65a; --r8:#d9a46b;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e; --r5:#5cc0f2; --r6:#ff7eb6; --r7:#b5d65a; --r8:#d9a46b;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"],.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.step b{font-weight:600}
+.mono,.step code{font-family:var(--font-mono);font-size:.85em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.stats{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-mono);font-size:.8rem;padding:3px 8px;border-radius:999px;border:1px solid var(--line);display:inline-flex;gap:6px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.data{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.data summary{cursor:pointer;font-weight:600}
+.capbox{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.capbox input[type=range]{flex:1 1 180px;max-width:360px}
+.capbox .qval{font-family:var(--font-mono);font-size:1.1rem;min-width:3.5em}
+.capbox button{font:600 .85rem var(--font-body);padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.capbox .qhint{color:var(--muted);font-size:.85rem;flex-basis:100%}
+.cmp-title{font-family:var(--font-display);font-size:1.05rem;margin:0}
+.cmp-sub{color:var(--muted);font-size:.85rem;margin:2px 0 8px}
+#cmp tbody tr{cursor:pointer}
+#cmp td.best{color:var(--ok);font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Atelier VRP : la minoterie pas à pas</h1>
+    <p id="dsdesc"></p>
+  </header>
+
+  <div class="tabs" id="dsets" role="group" aria-label="Énoncé"></div>
+  <div class="capbox">
+    <label for="qrange"><b>Capacité du camion Q</b></label>
+    <input id="qrange" type="range" min="3" max="30" step="1" value="10">
+    <span class="qval"><b id="qval">10</b> t</span>
+    <button type="button" id="qreset">Remettre 10 t</button>
+    <span class="qhint" id="qhint"></span>
+  </div>
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <div class="main">
+    <div class="board">
+      <svg id="map" viewBox="-0.75 -0.75 7.5 7.5" role="img" aria-label="Carte des clients et des tournées"></svg>
+      <div class="ctrl">
+        <button id="first" type="button">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="mname"></h2>
+      <div class="rule" id="mrule"></div>
+      <div class="step" id="stext"></div>
+      <div class="tbl" id="stable"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+
+  <div class="data">
+    <h2 class="cmp-title">Effet de la capacité Q sur les méthodes</h2>
+    <p class="cmp-sub">Longueur totale (km) et nombre de camions pour chaque Q, sur l'énoncé choisi. La ligne surlignée est le Q actuel. Clique une ligne pour l'essayer.</p>
+    <div class="tbl" id="cmp"></div>
+  </div>
+
+  <details class="data">
+    <summary>Données de l'exercice</summary>
+    <div class="tbl" id="datatbl" style="margin-top:8px"></div>
+  </details>
+</div>
+
+<script>
+const DATASETS=[
+ {name:'Annale (A08, A16, A21)',desc:"Énoncé des annales A08, A16 et A21 : 18 boulangers, dépôt en (3, 3), camions de 10 t (modifiable ci-dessous), distance euclidienne. Gillett-Miller part du client 8.",start:8,
+  P:{1:[1,0],2:[2,0],3:[6,0],4:[0,1],5:[2,1],6:[4,1],7:[5,1],8:[0,2],9:[3,2],10:[0,3],11:[6,3],12:[2,4],13:[6,4],14:[4,5],15:[5,5],16:[0,6],17:[3,6],18:[5,6],0:[3,3]},
+  DEM:{1:2,2:2,3:1,4:2,5:1,6:1,7:1,8:3,9:2,10:1,11:2,12:3,13:1,14:2,15:2,16:2,17:1,18:1}},
+ {name:'TD Exo_VRP',desc:"Énoncé du TD Exo_VRP : mêmes boulangers mais 7 clients placés autrement (6, 7, 8, 9, 13, 14, 15), dépôt en (3, 3), 4 camions de 10 t (modifiable ci-dessous). Gillett-Miller part du client 18.",start:18,
+  P:{1:[1,0],2:[2,0],3:[6,0],4:[0,1],5:[2,1],6:[5,1],7:[1,2],8:[3,2],9:[5,2],10:[0,3],11:[6,3],12:[2,4],13:[5,4],14:[6,4],15:[4,5],16:[0,6],17:[3,6],18:[5,6],0:[3,3]},
+  DEM:{1:2,2:2,3:1,4:2,5:1,6:1,7:3,8:2,9:1,10:1,11:2,12:3,13:2,14:1,15:2,16:2,17:1,18:1}}
+];
+let P,DEM,START,CLIENTS,DS=0;let Q=10;
+function useDataset(i){DS=i;P=DATASETS[i].P;DEM=DATASETS[i].DEM;START=DATASETS[i].start;CLIENTS=Object.keys(DEM).map(Number)}
+useDataset(0);
+const d=(a,b)=>Math.hypot(P[a][0]-P[b][0],P[a][1]-P[b][1]);
+const f2=x=>x.toFixed(2).replace('.',',');
+const nm=i=>i===0?'D':String(i);
+const tourLen=t=>{let s=0;for(let i=0;i<t.length-1;i++)s+=d(t[i],t[i+1]);return s};
+const RC=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--r5)','var(--r6)','var(--r7)','var(--r8)'];
+const edgesOf=(t,c,extra={})=>{const e=[];for(let i=0;i<t.length-1;i++)e.push({a:t[i],b:t[i+1],c,...extra});return e};
+const deep=o=>JSON.parse(JSON.stringify(o));
+const sqrtName=x=>{const s=Math.round(x*x);const r=Math.sqrt(s);return Number.isInteger(r)?String(r):`√${s} ≈ ${f2(x)}`};
+
+/* ---------- PPV ---------- */
+function buildPPV(){
+  const steps=[];const left=new Set(CLIENTS);const done=[];
+  const statsOf=(cur)=>{const all=[...done];if(cur)all.push(cur);return all.map((t,i)=>({c:RC[i%8],t:`T${i+1} : ${f2(tourLen(t.path))} km, ${t.load} t`}))};
+  const drawn=(cur)=>{let e=[];done.forEach((t,i)=>e=e.concat(edgesOf(t.path,RC[i%8])));if(cur)e=e.concat(edgesOf(cur.path,RC[done.length%8]));return e};
+  const totD=CLIENTS.reduce((s,j)=>s+DEM[j],0);
+  steps.push({text:`<b>Départ.</b> Demande totale = ${totD} t, Q = ${Q} t, donc au moins <b>${Math.ceil(totD/Q)} camions</b> (⌈${totD}/${Q}⌉). Le premier camion part du dépôt D, vide.`,edges:[],hl:[0],stats:[]});
+  while(left.size){
+    const cur={path:[0],load:0};
+    while(true){
+      const here=cur.path[cur.path.length-1];
+      const cands=[...left].map(j=>({j,dist:d(here,j),fits:cur.load+DEM[j]<=Q})).sort((a,b)=>a.dist-b.dist||a.j-b.j);
+      const feas=cands.filter(c=>c.fits);
+      const shown=cands.slice(0,6);
+      if(!feas.length){
+        cur.path.push(0);
+        const rows=shown.map(c=>[nm(c.j),f2(c.dist),`${DEM[c.j]} t`,c.fits?'oui':'non',false]);
+        steps.push({text:`<b>Plus aucun client ne tient</b> (charge ${cur.load}/${Q}). Retour au dépôt : la tournée ${done.length+1} est fermée, longueur <b>${f2(tourLen(cur.path))} km</b>.`,edges:drawn(cur),hl:[0],cands:[],table:rows.length?{h:['Client','Distance','Demande','Tient ?'],rows}:null,stats:statsOf(cur)});
+        done.push(cur);break;
+      }
+      const best=feas[0];const ties=feas.filter(c=>Math.abs(c.dist-best.dist)<1e-9);
+      const skipped=cands.filter(c=>!c.fits&&c.dist<best.dist-1e-9);
+      let txt=`Depuis <b>${nm(here)}</b> (charge ${cur.load}/${Q}) : le plus proche client qui tient est <b>${best.j}</b> à ${sqrtName(best.dist)}.`;
+      if(skipped.length)txt+=` ${skipped.map(c=>c.j).join(', ')} ${skipped.length>1?'sont':'est'} plus proche${skipped.length>1?'s':''} mais ne tien${skipped.length>1?'nent':'t'} pas dans le camion.`;
+      if(ties.length>1)txt+=` Égalité avec ${ties.slice(1).map(c=>c.j).join(', ')} : on prend le plus petit numéro.`;
+      cur.path.push(best.j);cur.load+=DEM[best.j];left.delete(best.j);
+      const rows=shown.map(c=>[nm(c.j),f2(c.dist),`${DEM[c.j]} t`,c.fits?'oui':'non',c.j===best.j]);
+      steps.push({text:txt+` Charge : ${cur.load}/${Q}.`,edges:drawn(cur),hl:[best.j],cands:shown.map(c=>({a:here,b:c.j,ok:c.fits})),table:{h:['Client','Distance','Demande','Tient ?'],rows},stats:statsOf(cur)});
+    }
+  }
+  const tot=done.reduce((s,t)=>s+tourLen(t.path),0);
+  steps.push({text:`<b>Fin.</b> ${done.length} camions, longueur totale <b>${f2(tot)} km</b>. Regarde la dernière tournée : elle ramasse les clients restants, souvent dispersés, d'où de longs trajets. C'est le défaut typique du PPV.`,edges:drawn(null),hl:[],stats:statsOf(null)});
+  return steps;
+}
+
+/* ---------- Gillett-Miller (secteurs) ---------- */
+const ang=j=>{const x=P[j][0]-3,y=P[j][1]-3;return ((Math.atan2(y,x)*180/Math.PI)+360)%360};
+function sweepOrder(){const a8=ang(START);return [...CLIENTS].sort((a,b)=>((ang(a)-a8+360)%360)-((ang(b)-a8+360)%360)||d(0,a)-d(0,b))}
+function sectors(){const o=sweepOrder();const s=[];let cur=[],load=0;for(const j of o){if(load+DEM[j]>Q){s.push(cur);cur=[];load=0}cur.push(j);load+=DEM[j]}s.push(cur);return s}
+function buildGM(){
+  const order=sweepOrder();const steps=[];
+  const angRows=order.map(j=>[String(j),`${Math.round(ang(j))}°`,`${DEM[j]} t`,'',false]);
+  steps.push({text:`<b>Étape 1 : angles polaires.</b> Chaque client est repéré par l'angle de la demi-droite D → client, mesuré depuis l'axe horizontal. On trie à partir du client ${START} en tournant dans le sens inverse des aiguilles d'une montre (angles croissants).`,rays:order.map(j=>({j,c:'var(--cand)'})),edges:[],hl:[START],table:{h:['Client','Angle','Demande',''],rows:angRows},stats:[]});
+  const secs=[];let cur=[],load=0;
+  for(const j of order){
+    if(load+DEM[j]>Q){secs.push({m:cur,load});
+      steps.push({text:`Ajouter <b>${j}</b> (${DEM[j]} t) ferait ${load+DEM[j]} t &gt; ${Q} : le secteur ${secs.length} est fermé avec <b>${load} t</b>. On ouvre le secteur ${secs.length+1}.`,rays:mkRays(secs,[],j),edges:[],hl:[j],stats:secStats(secs,null)});
+      cur=[];load=0}
+    cur.push(j);load+=DEM[j];
+    steps.push({text:`Le balayage atteint <b>${j}</b> (angle ${Math.round(ang(j))}°, ${DEM[j]} t). Secteur ${secs.length+1} : ${cur.join(', ')}, charge <b>${load}/${Q}</b>.`,rays:mkRays(secs,cur,j),edges:[],hl:[j],stats:secStats(secs,{m:cur,load})});
+  }
+  secs.push({m:cur,load});
+  steps.push({text:`<b>Secteurs terminés</b> : ${secs.length} secteurs (${secs.map(x=>x.load+' t').join(', ')}) pour Q = ${Q} t. Étape 2 : résoudre un TSP dans chaque secteur, dépôt inclus. Ici avec Shamos (onglet suivant pour le détail).`,rays:mkRays(secs,[],null),edges:[],hl:[],stats:secStats(secs,null)});
+  const tours=sectors().map(s=>shamos(s).final);let e=[];
+  tours.forEach((t,i)=>e=e.concat(edgesOf(t,RC[i%8])));
+  const tot=tours.reduce((s,t)=>s+tourLen(t),0);
+  steps.push({text:`<b>Résultat Gillett-Miller + Shamos</b> : longueur totale <b>${f2(tot)} km</b>, contre ${f2(ppvTotal())} km pour le PPV.`,rays:mkRays(secs,[],null,true),edges:e,hl:[],stats:tours.map((t,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(t))} km`}))});
+  return steps;
+  function mkRays(secs,cur,hlj,faint){const r=[];secs.forEach((s,i)=>s.m.forEach(j=>r.push({j,c:RC[i%8],faint})));cur.forEach(j=>r.push({j,c:RC[secs.length%8],faint}));return r}
+  function secStats(secs,c){const a=secs.map((s,i)=>({c:RC[i%8],t:`S${i+1} : ${s.load} t`}));if(c)a.push({c:RC[secs.length%8],t:`S${secs.length+1} : ${c.load} t`});return a}
+}
+
+/* ---------- Shamos ---------- */
+function hull(ids){const pts=[...new Set(ids)].sort((a,b)=>P[a][0]-P[b][0]||P[a][1]-P[b][1]);
+  const cr=(o,a,b)=>(P[a][0]-P[o][0])*(P[b][1]-P[o][1])-(P[a][1]-P[o][1])*(P[b][0]-P[o][0]);
+  const lo=[],up=[];for(const p of pts){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p)}
+  for(const p of [...pts].reverse()){while(up.length>=2&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p)}
+  return lo.slice(0,-1).concat(up.slice(0,-1))}
+function shamos(s){const h=hull([0,...s]);const rest=s.filter(j=>!h.includes(j));const cyc=[...h];const ins=[];
+  while(rest.length){let best=null;const opts=[];
+    for(const k of rest){let bk=null;for(let i=0;i<cyc.length;i++){const a=cyc[i],b=cyc[(i+1)%cyc.length];const c=d(a,k)+d(k,b)-d(a,b);if(!bk||c<bk.c-1e-9)bk={c,k,i,a,b}}opts.push(bk);if(!best||bk.c<best.c-1e-9)best=bk}
+    ins.push({best,opts,before:[...cyc]});cyc.splice(best.i+1,0,best.k);rest.splice(rest.indexOf(best.k),1)}
+  const z=cyc.indexOf(0);const final=cyc.slice(z).concat(cyc.slice(0,z),[0]);return {h,ins,final,cyc}}
+const closed=c=>c.concat([c[0]]);
+function buildShamos(){const steps=[];const secs=sectors();const doneT=[];
+  const prevEdges=()=>{let e=[];doneT.forEach((t,i)=>e=e.concat(edgesOf(t,RC[i%8])));return e};
+  steps.push({text:`On résout le TSP de chaque secteur de Gillett-Miller, <b>dépôt inclus</b>. Les points des autres secteurs sont estompés.`,edges:[],hl:[],dim:[],stats:[]});
+  secs.forEach((s,si)=>{const r=shamos(s);const col=RC[si%8];const others=CLIENTS.filter(j=>!s.includes(j));
+    steps.push({text:`<b>Secteur ${si+1}</b> (${s.join(', ')}) : on tend l'élastique, c'est l'enveloppe convexe des points du secteur et du dépôt : ${r.h.map(nm).join(' → ')} → ${nm(r.h[0])}. Longueur ${f2(tourLen(closed(r.h)))}.${r.ins.length?'':' Tous les points sont déjà sur l\'élastique.'}`,edges:prevEdges().concat(edgesOf(closed(r.h),col)),hl:r.h,dim:others,stats:doneT.map((t,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(t))} km`}))});
+    r.ins.forEach(({best,opts,before})=>{const after=[...before];after.splice(best.i+1,0,best.k);
+      const rows=opts.sort((a,b)=>a.c-b.c).map(o=>[String(o.k),`entre ${nm(o.a)} et ${nm(o.b)}`,`${f2(d(o.a,o.k))} + ${f2(d(o.k,o.b))} − ${f2(d(o.a,o.b))}`,`+${f2(o.c)}`,o.k===best.k]);
+      steps.push({text:`On insère le point intérieur qui allonge le moins l'élastique : <b>${best.k}</b> entre ${nm(best.a)} et ${nm(best.b)}, surcoût <b>+${f2(best.c)}</b>.${best.c<1e-9?' Il était déjà sur un côté de l\'élastique.':''}`,edges:prevEdges().concat(edgesOf(closed(after),col)),hl:[best.k],dim:others,cands:[{a:best.a,b:best.k,ok:true},{a:best.k,b:best.b,ok:true}],table:{h:['Point','Meilleure place','Calcul','Surcoût'],rows},stats:doneT.map((t,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(t))} km`}))})});
+    doneT.push(r.final);
+    steps.push({text:`Secteur ${si+1} terminé : <b>${r.final.map(nm).join(' → ')}</b>, longueur <b>${f2(tourLen(r.final))} km</b>.`,edges:prevEdges(),hl:[],dim:[],stats:doneT.map((t,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(t))} km`}))})});
+  const tot=doneT.reduce((s,t)=>s+tourLen(t),0);
+  steps.push({text:`<b>Total : ${f2(tot)} km.</b> ${Q===10?'Pour Q = 10, on a vérifié par énumération que la tournée de Shamos est optimale dans chaque secteur.':'Shamos reste une heuristique : rien ne garantit l\'optimum dans un gros secteur.'}`,edges:prevEdges(),hl:[],dim:[],stats:doneT.map((t,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(t))} km`}))});
+  return steps}
+
+/* ---------- Fletcher ---------- */
+function buildFletcher(){const steps=[];const secs=sectors();const doneT=[];
+  const prevEdges=()=>{let e=[];doneT.forEach((t,i)=>e=e.concat(edgesOf(t,RC[i%8])));return e};
+  steps.push({text:`Fletcher appliqué au TSP de chaque secteur de Gillett-Miller, dépôt inclus. On trie toutes les arêtes du secteur par longueur croissante (à égalité : ordre des numéros) et on les prend une par une.`,edges:[],hl:[],stats:[]});
+  secs.forEach((s,si)=>{const V=[0,...s];const col=RC[si%8];const others=CLIENTS.filter(j=>!s.includes(j));
+    if(V.length===2){const t=[0,s[0],0];doneT.push(t);steps.push({text:`<b>Secteur ${si+1}</b> : un seul client (${s[0]}), la tournée est l'aller-retour D → ${s[0]} → D, longueur <b>${f2(tourLen(t))} km</b>.`,edges:prevEdges(),hl:[s[0]],dim:others,stats:doneT.map((x,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(x))} km`}))});return}
+    const E=[];for(let i=0;i<V.length;i++)for(let j=i+1;j<V.length;j++)E.push({a:V[i],b:V[j],w:d(V[i],V[j])});
+    E.sort((x,y)=>x.w-y.w||Math.min(x.a,x.b)-Math.min(y.a,y.b)||Math.max(x.a,x.b)-Math.max(y.a,y.b));
+    const deg={};V.forEach(v=>deg[v]=0);const par={};V.forEach(v=>par[v]=v);const find=x=>par[x]===x?x:(par[x]=find(par[x]));
+    const chosen=[];let rejected=[];
+    steps.push({text:`<b>Secteur ${si+1}</b> (${s.join(', ')} et D) : ${V.length} sommets isolés, ${E.length} arêtes à examiner. Il faudra en choisir ${V.length}.`,edges:prevEdges(),hl:V,dim:others,stats:[]});
+    for(const e of E){if(chosen.length===V.length)break;
+      const last=chosen.length===V.length-1;
+      let why=null;
+      if(deg[e.a]>=2||deg[e.b]>=2)why=`fourche en ${deg[e.a]>=2?nm(e.a):nm(e.b)}`;
+      else if(!last&&find(e.a)===find(e.b))why='ferme un cycle trop tôt';
+      if(why){rejected.push(`${nm(e.a)}-${nm(e.b)} (${f2(e.w)}) : ${why}`);continue}
+      chosen.push(e);deg[e.a]++;deg[e.b]++;par[find(e.a)]=find(e.b);
+      const ce=chosen.map(c=>({a:c.a,b:c.b,c:col}));
+      let txt=`On ajoute <b>${nm(e.a)}-${nm(e.b)}</b> (${sqrtName(e.w)}).`;
+      if(rejected.length)txt+=` Avant elle, on a refusé : ${rejected.join(' ; ')}.`;
+      if(last)txt+=` C'est la dernière arête : elle ferme le cycle hamiltonien.`;
+      steps.push({text:txt,edges:prevEdges().concat(ce),hl:[e.a,e.b],dim:others,stats:[{c:col,t:`${chosen.length}/${V.length} arêtes, ${f2(chosen.reduce((x,c)=>x+c.w,0))} km`}]});
+      rejected=[]}
+    // build tour from chosen
+    const adj={};chosen.forEach(c=>{(adj[c.a]=adj[c.a]||[]).push(c.b);(adj[c.b]=adj[c.b]||[]).push(c.a)});
+    const t=[0];let prev=null,cur=0;while(t.length<=V.length){const nx=adj[cur].find(x=>x!==prev&&!(t.length<V.length&&x===0));prev=cur;cur=nx;t.push(cur);if(cur===0)break}
+    doneT.push(t);
+    steps.push({text:`Secteur ${si+1} : <b>${t.map(nm).join(' → ')}</b>, longueur <b>${f2(tourLen(t))} km</b>.`,edges:prevEdges(),hl:[],dim:[],stats:doneT.map((x,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(x))} km`}))})});
+  const tot=doneT.reduce((s,t)=>s+tourLen(t),0);
+  steps.push({text:`<b>Total Gillett-Miller + Fletcher : ${f2(tot)} km.</b> Compare avec Shamos sur les mêmes secteurs (${f2(sectors().reduce((s,x)=>s+tourLen(shamos(x).final),0))} km).`,edges:prevEdges(),hl:[],dim:[],stats:doneT.map((x,i)=>({c:RC[i%8],t:`S${i+1} : ${f2(tourLen(x))} km`}))});
+  return steps}
+
+/* ---------- Clarke & Wright ---------- */
+function buildCW(){const steps=[];let routes=CLIENTS.map(j=>({p:[j],load:DEM[j]}));
+  const draw=(hl)=>{let e=[];routes.forEach((r,i)=>{e=e.concat(edgesOf([0,...r.p,0],r.p.length>1?RC[i%8]:'var(--cand)',r.p.length>1?{}:{thin:true}))});return e};
+  const stats=()=>{const m=routes.filter(r=>r.p.length>1);const tot=routes.reduce((s,r)=>s+tourLen([0,...r.p,0]),0);return [{c:'var(--accent)',t:`${routes.length} tournées, ${f2(tot)} km`}]};
+  const S=[];for(let a=0;a<CLIENTS.length;a++)for(let b=a+1;b<CLIENTS.length;b++){const i=CLIENTS[a],j=CLIENTS[b];S.push({i,j,e:d(i,0)+d(0,j)-d(i,j)})}
+  S.sort((x,y)=>y.e-x.e||x.i-y.i||x.j-y.j);
+  steps.push({text:`<b>Départ :</b> ${CLIENTS.length} allers-retours D → i → D (un camion par client). On calcule l'économie de chaque paire, e(i, j) = d(i, D) + d(D, j) − d(i, j), puis on les trie par ordre décroissant. Le tableau montre les plus fortes.`,edges:draw(),hl:[],table:{h:['Paire','Économie','',''],rows:S.slice(0,8).map(s=>[`${s.i}-${s.j}`,f2(s.e),'','',false])},stats:stats()});
+  let skipped=[];
+  for(const s of S){if(s.e<=1e-9)break;
+    const ri=routes.findIndex(r=>r.p.includes(s.i)),rj=routes.findIndex(r=>r.p.includes(s.j));
+    const A=routes[ri],B=routes[rj];
+    let why=null;
+    if(ri===rj)why='déjà dans la même tournée';
+    else if(!(A.p[0]===s.i||A.p[A.p.length-1]===s.i))why=`${s.i} est au milieu d'une tournée`;
+    else if(!(B.p[0]===s.j||B.p[B.p.length-1]===s.j))why=`${s.j} est au milieu d'une tournée`;
+    else if(A.load+B.load>Q)why=`charge ${A.load}+${B.load} > ${Q}`;
+    if(why){skipped.push(`${s.i}-${s.j} (${why})`);continue}
+    const a=A.p[A.p.length-1]===s.i?A.p:[...A.p].reverse();const b=B.p[0]===s.j?B.p:[...B.p].reverse();
+    const merged={p:a.concat(b),load:A.load+B.load};
+    routes=routes.filter((_,k)=>k!==ri&&k!==rj);routes.push(merged);
+    let txt=`Économie suivante : <b>${s.i}-${s.j} = ${f2(s.e)}</b>. On fusionne : D → ${merged.p.join(' → ')} → D, charge <b>${merged.load}/${Q}</b>.`;
+    if(skipped.length){txt+=` Paires refusées avant : ${skipped.slice(0,4).join(' ; ')}${skipped.length>4?` et ${skipped.length-4} autre(s)`:''}.`}
+    skipped=[];
+    steps.push({text:txt,edges:draw(),hl:[s.i,s.j],cands:[{a:s.i,b:s.j,ok:true}],stats:stats()})}
+  const tot=routes.reduce((s,r)=>s+tourLen([0,...r.p,0]),0);
+  steps.push({text:`<b>Plus aucune fusion possible.</b> ${routes.length} tournées, longueur totale <b>${f2(tot)} km</b>. Clarke et Wright construit toutes les tournées en parallèle : aucune tournée n'est forcée de ramasser les clients restants, contrairement au PPV.`,edges:draw(),hl:[],stats:routes.map((r,i)=>({c:RC[i%8],t:`T${i+1} : ${f2(tourLen([0,...r.p,0]))} km, ${r.load} t`}))});
+  return steps}
+
+const METHODS=[
+ {id:'ppv',name:'PPV tournée par tournée',rule:'<ol><li>Partir du dépôt avec un camion vide.</li><li>Aller au client non servi le plus proche <b>dont la demande tient</b> dans le camion.</li><li>Quand plus rien ne tient, rentrer au dépôt.</li><li>Recommencer avec un nouveau camion.</li></ol>',build:buildPPV},
+ {id:'gm',name:'Gillett-Miller (balayage)',rule:'<ol><li>Angle polaire de chaque client vu du dépôt.</li><li>Trier à partir du client imposé, sens inverse des aiguilles d\'une montre.</li><li>Remplir un secteur tant que la capacité Q n\'est pas dépassée.</li><li>TSP dans chaque secteur, dépôt inclus.</li></ol>',build:buildGM},
+ {id:'shamos',name:'Shamos (élastique)',rule:'<ol><li>Enveloppe convexe des points du secteur et du dépôt.</li><li>Pour chaque point intérieur k et chaque côté (i, j) : surcoût d(i,k) + d(k,j) − d(i,j).</li><li>Insérer le point de plus petit surcoût, à sa meilleure place, et recommencer.</li></ol>',build:buildShamos},
+ {id:'fletcher',name:'Fletcher (arêtes)',rule:'<ol><li>Sommets isolés, arêtes triées par longueur croissante.</li><li>Ajouter la plus petite arête qui ne crée ni fourche (degré 3) ni cycle.</li><li>La dernière arête ferme le cycle.</li></ol>',build:buildFletcher},
+ {id:'cw',name:'Clarke et Wright',rule:'<ol><li>Un aller-retour par client.</li><li>Économie e(i, j) = d(i, D) + d(D, j) − d(i, j), triées par ordre décroissant.</li><li>Fusionner si i et j sont en bout de tournée, dans deux tournées différentes, et si la charge reste ≤ Q.</li></ol>',build:buildCW}
+];
+
+/* ---------- rendering ---------- */
+const svg=document.getElementById('map');const NS='http://www.w3.org/2000/svg';
+const X=p=>p[0],Y=p=>6-p[1];
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e}
+function render(st){
+  svg.innerHTML='';
+  const g=el('g',{});
+  for(let i=0;i<=6;i++){el('line',{x1:i,y1:0,x2:i,y2:6,stroke:'var(--grid)','stroke-width':0.02},g);el('line',{x1:0,y1:i,x2:6,y2:i,stroke:'var(--grid)','stroke-width':0.02},g);
+    el('text',{x:i,y:6.55,'text-anchor':'middle','font-size':0.24,fill:'var(--muted)','font-family':'JetBrains Mono, monospace'},g).textContent=i;
+    el('text',{x:-0.42,y:6-i+0.08,'text-anchor':'middle','font-size':0.24,fill:'var(--muted)','font-family':'JetBrains Mono, monospace'},g).textContent=i}
+  const dim=new Set(st.dim||[]);
+  (st.rays||[]).forEach(r=>el('line',{x1:3,y1:3,x2:X(P[r.j]),y2:Y(P[r.j]),stroke:r.c,'stroke-width':r.faint?0.015:0.025,'stroke-dasharray':'0.08 0.06',opacity:r.faint?0.5:0.9}));
+  (st.edges||[]).forEach(e=>{el('line',{x1:X(P[e.a]),y1:Y(P[e.a]),x2:X(P[e.b]),y2:Y(P[e.b]),stroke:e.c,'stroke-width':e.thin?0.018:0.06,'stroke-linecap':'round',opacity:e.thin?0.6:1})});
+  (st.cands||[]).forEach(c=>el('line',{x1:X(P[c.a]),y1:Y(P[c.a]),x2:X(P[c.b]),y2:Y(P[c.b]),stroke:c.ok?'var(--accent)':'var(--no)','stroke-width':0.025,'stroke-dasharray':'0.07 0.06'}));
+  const hl=new Set(st.hl||[]);
+  CLIENTS.forEach(j=>{const p=P[j];const o=dim.has(j)?0.3:1;
+    el('circle',{cx:X(p),cy:Y(p),r:0.2,fill:hl.has(j)?'var(--accent)':'var(--paper)',stroke:hl.has(j)?'var(--accent)':'var(--ink)','stroke-width':0.03,opacity:o});
+    el('text',{x:X(p),y:Y(p)+0.08,'text-anchor':'middle','font-size':0.2,'font-weight':600,fill:hl.has(j)?'var(--paper)':'var(--ink)','font-family':'Inter, sans-serif',opacity:o}).textContent=j;
+    el('text',{x:X(p)+0.24,y:Y(p)-0.17,'font-size':0.16,fill:'var(--muted)','font-family':'JetBrains Mono, monospace',opacity:o}).textContent=`(${DEM[j]})`});
+  el('rect',{x:2.76,y:2.76,width:0.48,height:0.48,rx:0.06,fill:hl.has(0)?'var(--accent)':'var(--ink)'});
+  el('text',{x:3,y:3.09,'text-anchor':'middle','font-size':0.24,'font-weight':700,fill:'var(--paper)','font-family':'Space Grotesk, sans-serif'}).textContent='D';
+}
+let M=0,steps=[],k=0,timer=null;
+const $=id=>document.getElementById(id);
+function show(){const st=steps[k];render(st);
+  $('stext').innerHTML=st.text;
+  $('stable').innerHTML=st.table?`<table><thead><tr>${st.table.h.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${st.table.rows.map(r=>`<tr class="${r[4]?'pick':''}">${r.slice(0,4).map((c,i)=>`<td class="${c==='oui'?'ok':c==='non'?'no':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'';
+  $('stats').innerHTML=(st.stats||[]).map(s=>`<span class="chip"><span class="dot" style="background:${s.c}"></span>${s.t}</span>`).join('');
+  $('count').textContent=`Étape ${k+1} / ${steps.length}`;$('slider').max=steps.length-1;$('slider').value=k;
+  $('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===steps.length-1}
+function ppvTotal(){const left=new Set(CLIENTS);let tot=0;while(left.size){let cur=0,load=0,t=[0];while(true){const c=[...left].filter(j=>load+DEM[j]<=Q).sort((a,b)=>d(cur,a)-d(cur,b)||a-b);if(!c.length)break;cur=c[0];t.push(cur);load+=DEM[cur];left.delete(cur)}t.push(0);tot+=tourLen(t)}return tot}
+function totals(){const gmSecs=sectors();const gmSh=gmSecs.reduce((s,x)=>s+tourLen(shamos(x).final),0);
+  // PPV
+  const left=new Set(CLIENTS);let ppv=0,nP=0;while(left.size){let cur=0,load=0,t=[0];while(true){const c=[...left].filter(j=>load+DEM[j]<=Q).sort((a,b)=>d(cur,a)-d(cur,b)||a-b);if(!c.length)break;cur=c[0];t.push(cur);load+=DEM[cur];left.delete(cur)}t.push(0);ppv+=tourLen(t);nP++}
+  // Clarke et Wright
+  let routes=CLIENTS.map(j=>({p:[j],load:DEM[j]}));const S=[];for(let a=0;a<CLIENTS.length;a++)for(let b=a+1;b<CLIENTS.length;b++){const i=CLIENTS[a],j=CLIENTS[b];S.push({i,j,e:d(i,0)+d(0,j)-d(i,j)})}
+  S.sort((x,y)=>y.e-x.e||x.i-y.i||x.j-y.j);
+  for(const s of S){if(s.e<=1e-9)break;const ri=routes.findIndex(r=>r.p.includes(s.i)),rj=routes.findIndex(r=>r.p.includes(s.j));if(ri===rj)continue;const A=routes[ri],B=routes[rj];
+    if(!(A.p[0]===s.i||A.p[A.p.length-1]===s.i)||!(B.p[0]===s.j||B.p[B.p.length-1]===s.j)||A.load+B.load>Q)continue;
+    const a=A.p[A.p.length-1]===s.i?A.p:[...A.p].reverse();const b=B.p[0]===s.j?B.p:[...B.p].reverse();
+    const m={p:a.concat(b),load:A.load+B.load};routes=routes.filter((_,k)=>k!==ri&&k!==rj);routes.push(m)}
+  const cw=routes.reduce((s,r)=>s+tourLen([0,...r.p,0]),0);
+  return {lb:Math.ceil(CLIENTS.reduce((s,j)=>s+DEM[j],0)/Q),ppv,nP,gm:gmSh,nG:gmSecs.length,cw,nC:routes.length}}
+function fillCmp(){const q0=Q;const qs=[3,4,5,6,8,10,12,15,20,30];if(!qs.includes(q0)){qs.push(q0);qs.sort((a,b)=>a-b)}
+  const rows=qs.map(q=>{Q=q;const t=totals();return {q,...t}});Q=q0;
+  $('cmp').innerHTML=`<table><thead><tr><th>Q</th><th>Camions min.</th><th>PPV</th><th>Gillett-Miller + Shamos</th><th>Clarke et Wright</th></tr></thead><tbody>${rows.map(r=>{const b=Math.min(r.ppv,r.gm,r.cw);const c=(v,n)=>`<td class="${Math.abs(v-b)<1e-9?'best':''}">${f2(v)} km · ${n} cam.</td>`;return `<tr data-q="${r.q}" class="${r.q===q0?'pick':''}"><td><b>${r.q} t</b></td><td>${r.lb}</td>${c(r.ppv,r.nP)}${c(r.gm,r.nG)}${c(r.cw,r.nC)}</tr>`}).join('')}</tbody></table>`;
+  document.querySelectorAll('#cmp tbody tr').forEach(tr=>tr.onclick=()=>setQ(+tr.dataset.q))}
+function setQ(q){Q=q;$('qrange').value=q;$('qval').textContent=q;
+  const maxD=Math.max(...CLIENTS.map(j=>DEM[j])),tot=CLIENTS.reduce((s,j)=>s+DEM[j],0);
+  $('qhint').textContent=q>=tot?`Q ≥ ${tot} t (demande totale) : un seul secteur, Gillett-Miller se réduit à un TSP sur tous les clients.`:`Demande totale ${tot} t, donc au moins ⌈${tot}/${q}⌉ = ${Math.ceil(tot/q)} camions. Plus Q est petit, plus les secteurs sont étroits et nombreux (Q doit rester ≥ ${maxD} t, la plus grosse demande).`;
+  try{localStorage.setItem('vrp-q',String(q))}catch(e){}
+  fillCmp();pick(M)}
+function fillData(){$('dsdesc').textContent=DATASETS[DS].desc+" Choisis une méthode puis avance avec « Étape suivante » ou les flèches du clavier.";
+$('datatbl').innerHTML=`<table><thead><tr><th>Client</th><th>x</th><th>y</th><th>Demande</th><th>Client</th><th>x</th><th>y</th><th>Demande</th></tr></thead><tbody>${[1,2,3,4,5,6,7,8,9].map(i=>`<tr><td>${i}</td><td>${P[i][0]}</td><td>${P[i][1]}</td><td>${DEM[i]} t</td><td>${i+9}</td><td>${P[i+9][0]}</td><td>${P[i+9][1]}</td><td>${DEM[i+9]} t</td></tr>`).join('')}</tbody></table>`;
+document.querySelectorAll('#dsets button').forEach((b,j)=>b.setAttribute('aria-pressed',j===DS))}
+function pickDs(i){useDataset(i);fillData();try{localStorage.setItem('vrp-ds',String(i))}catch(e){}setQ(Q)}
+function pick(i){M=i;steps=METHODS[i].build();k=0;stop();
+  $('mname').textContent=METHODS[i].name;$('mrule').innerHTML='<b>La méthode</b>'+METHODS[i].rule;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));
+  try{localStorage.setItem('vrp-tab',String(i))}catch(e){}
+  show()}
+function stop(){if(timer){clearInterval(timer);timer=null;$('play').textContent='Lecture'}}
+METHODS.forEach((m,i)=>{const b=document.createElement('button');b.type='button';b.role='tab';b.textContent=m.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<steps.length-1){k++;show()}};
+$('prev').onclick=()=>{if(k>0){k--;show()}};
+$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+$('play').onclick=()=>{if(timer){stop();return}$('play').textContent='Pause';timer=setInterval(()=>{if(k<steps.length-1){k++;show()}else stop()},1400)};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight'){$('next').click()}else if(e.key==='ArrowLeft'){$('prev').click()}});
+DATASETS.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.textContent=x.name;b.onclick=()=>pickDs(i);$('dsets').appendChild(b)});
+try{const v=+localStorage.getItem('vrp-ds');if(v>=0&&v<DATASETS.length)useDataset(v)}catch(e){}
+fillData();
+$('qrange').oninput=e=>setQ(+e.target.value);
+$('qreset').onclick=()=>setQ(10);
+try{const q=+localStorage.getItem('vrp-q');if(q>=3&&q<=30)Q=q}catch(e){}
+let start=0;try{const s=+localStorage.getItem('vrp-tab');if(s>=0&&s<METHODS.length)start=s}catch(e){}
+M=start;setQ(Q);
+</script>
+
+
+</body></html>

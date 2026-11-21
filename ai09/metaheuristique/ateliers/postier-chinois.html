@@ -1,0 +1,243 @@
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<title>Atelier postier chinois</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: carte quadrillée (papier millimétré) à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#8a97a8;
+  --font-display:"Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.step b{font-weight:600}
+.mono,.step code{font-family:var(--font-mono);font-size:.85em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.stats{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-mono);font-size:.8rem;padding:3px 8px;border-radius:999px;border:1px solid var(--line);display:inline-flex;gap:6px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.data{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.data summary{cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<style>
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:0;border-top:3px solid var(--ink);display:inline-block}
+.sw.dup{border-top:3px dashed var(--r3)}
+.sw.done{border-top-color:var(--r2)}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Atelier postier chinois pas à pas</h1>
+    <p>Les graphes des annales : degrés, sommets impairs, plus courts chemins, couplage minimal, arêtes doublées, puis le cycle eulérien parcouru rue par rue. Avance avec « Étape suivante » ou les flèches du clavier.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <div class="main">
+    <div class="board">
+      <svg id="map" viewBox="0 0 10 8" role="img" aria-label="Graphe du réseau de rues"></svg>
+      <div class="legend">
+        <span><i class="sw"></i>rue</span>
+        <span><i class="sw dup"></i>rue parcourue une 2e fois</span>
+        <span><i class="sw done"></i>déjà parcourue</span>
+      </div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="mname"></h2>
+      <div class="badge" id="msrc"></div>
+      <div class="rule"><b>La méthode</b><ol>
+        <li>Tableau des degrés. Tous pairs : le cycle eulérien existe (Euler).</li>
+        <li>Sinon, plus courts chemins entre les sommets impairs.</li>
+        <li>Couplage parfait de coût minimal entre ces sommets (avec 4 impairs : 3 couplages à comparer).</li>
+        <li>Doubler les rues des chemins choisis : tous les degrés deviennent pairs.</li>
+        <li>Longueur = somme des rues + coût du couplage. Donner un cycle explicite depuis le dépôt.</li>
+      </ol></div>
+      <div class="step" id="stext"></div>
+      <div class="tbl" id="stable"></div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const GRAPHS=[
+ {id:'ak',name:'Réseau A–K',src:'A15, A18, A25 · longueurs en mètres, départ et retour en B',unit:'m',start:'B',
+  pos:{A:[3.6,0.7],B:[7.6,0.7],H:[1,3.4],K:[4.3,3.4],C:[7.6,3.9],F:[1,6.2],D:[4.3,6.2],E:[2.5,7.4]},
+  E:[['A','B',1000],['A','H',280],['B','K',200],['B','C',600],['H','K',200],['K','C',120],['H','F',200],['H','D',400],['K','D',640],['C','D',200],['F','D',1000],['F','E',360],['E','D',120]],
+  end:t=>`Réponse à la question 3 : ${fmt(t)} m = <b>${(t/1000).toFixed(2).replace('.',',')} km</b>. Attention, la figure est en mètres.`},
+ {id:'q2',name:'Graphe Q″',src:'A16, question 3 · départ choisi en a (l\'énoncé n\'impose pas de dépôt)',unit:'',start:'a',
+  pos:{a:[5,0.6],f:[1,2.4],h:[3.3,2.4],i:[6.3,2.4],b:[9,2.4],g:[5,3.9],e:[1,5.1],c:[9,5.1],d:[5,7.2]},
+  E:[['a','f',8],['a','b',2],['f','h',1],['h','i',1],['i','b',1],['f','e',4],['h','e',2],['h','g',2],['i','g',4],['i','d',4],['g','d',1],['b','c',3],['e','d',3],['c','d',9]]},
+ {id:'q',name:'Quartier Q',src:'A13, A16 · chaque tronçon compte pour 1, départ et retour au dépôt D',unit:'tronçon',start:'D',
+  pos:{D:[1,1.5],E:[5,1.5],F:[9,1.5],G:[3,3.8],H:[7,3.8],C:[1,6.1],B:[5,6.1],A:[9,6.1]},
+  E:[['D','E',1],['E','F',1],['D','C',1],['F','A',1],['C','B',1],['B','A',1],['D','G',1],['G','B',1],['C','G',1],['G','E',1],['E','H',1],['H','A',1],['B','H',1],['H','F',1]],unweighted:true},
+ {id:'qp',name:'Quartier Q′',src:'A13, A16 · chaque tronçon compte pour 1, départ et retour au dépôt D',unit:'tronçon',start:'D',
+  pos:{E:[5,0.8],D:[1.5,3],G:[5,3],F:[8.5,3],C:[1.5,6.6],B:[5,6.6],A:[8.5,6.6]},
+  E:[['D','E',1],['E','F',1],['D','G',1],['G','F',1],['D','C',1],['C','B',1],['B','A',1],['A','F',1],['G','B',1]],unweighted:true}
+];
+const fmt=n=>n.toLocaleString('fr-FR');
+const RC={odd:'var(--r1)',dup:'var(--r3)',done:'var(--r2)',path:'var(--accent)'};
+
+function solve(G){
+  const V=Object.keys(G.pos);const adj={};V.forEach(v=>adj[v]=[]);
+  G.E.forEach(([a,b,w],i)=>{adj[a].push({v:b,w,i});adj[b].push({v:a,w,i})});
+  const deg={};V.forEach(v=>deg[v]=adj[v].length);
+  const odd=V.filter(v=>deg[v]%2).sort();
+  const total=G.E.reduce((s,e)=>s+e[2],0);
+  function dij(s){const D={},P={};V.forEach(v=>D[v]=Infinity);D[s]=0;const done=new Set();
+    while(done.size<V.length){let u=null;V.forEach(v=>{if(!done.has(v)&&(u===null||D[v]<D[u]))u=v});done.add(u);
+      adj[u].forEach(({v,w,i})=>{if(D[u]+w<D[v]){D[v]=D[u]+w;P[v]={u,i}}})}
+    return {D,P}}
+  const sp={};odd.forEach(a=>{const r=dij(a);odd.forEach(b=>{if(a<b){const path=[b],eids=[];let x=b;while(x!==a){eids.push(r.P[x].i);x=r.P[x].u;path.push(x)}sp[a+b]={c:r.D[b],path:path.reverse(),eids}}})});
+  const P2=(a,b)=>sp[a<b?a+b:b+a];
+  const all=[];(function rec(rest,acc,c){if(!rest.length){all.push({pairs:acc,c});return}const a=rest[0];for(let k=1;k<rest.length;k++){const b=rest[k];rec(rest.filter(x=>x!==a&&x!==b),acc.concat([[a,b]]),c+P2(a,b).c)}})(odd,[],0);
+  const best=all.reduce((m,x)=>x.c<m.c?x:m,all[0]||{pairs:[],c:0});
+  const dupIds=[];best.pairs.forEach(([a,b])=>P2(a,b).eids.forEach(i=>dupIds.push(i)));
+  // multigraph edges
+  const ME=G.E.map((e,i)=>({a:e[0],b:e[1],w:e[2],orig:i,copy:0}));
+  dupIds.forEach(i=>{const n=ME.filter(m=>m.orig===i).length;ME.push({a:G.E[i][0],b:G.E[i][1],w:G.E[i][2],orig:i,copy:n})});
+  // Hierholzer from start
+  const madj={};V.forEach(v=>madj[v]=[]);ME.forEach((m,k)=>{madj[m.a].push({v:m.b,k});madj[m.b].push({v:m.a,k})});
+  V.forEach(v=>madj[v].sort((x,y)=>x.v.localeCompare(y.v)||x.k-y.k));
+  const used=new Set();const st=[{v:G.start,k:null}];const circ=[];
+  while(st.length){const top=st[st.length-1];const nx=madj[top.v].find(x=>!used.has(x.k));if(nx){used.add(nx.k);st.push({v:nx.v,k:nx.k})}else circ.push(st.pop())}
+  circ.reverse();
+  return {V,deg,odd,total,sp,P2,all,best,dupIds,ME,circ};
+}
+
+function buildSteps(G){
+  const S=solve(G);const steps=[];const u=G.unweighted;
+  const W=n=>u?`${n} tronçon${n>1?'s':''}`:`${fmt(n)}${G.unit?' '+G.unit:''}`;
+  const base={dups:[],done:[],hl:[],oddShow:false,pathE:[]};
+  steps.push({...base,text:`Le graphe compte ${G.E.length} rues${u?'':`, pour une longueur totale de <b>${W(S.total)}</b>`}. Question : peut-on passer <b>une et une seule fois</b> par chaque rue en revenant au point de départ ?`,stats:[{c:'var(--accent)',t:`${G.E.length} rues`}]});
+  const degRows=S.V.slice().sort().map(v=>[v,String(S.deg[v]),S.deg[v]%2?'impair':'pair','',false]);
+  steps.push({...base,oddShow:true,text:S.odd.length?`<b>Degrés.</b> ${S.odd.length} sommets sont de degré impair : <b>${S.odd.join(', ')}</b>. D'après le théorème d'Euler, il n'existe donc <b>pas de cycle eulérien</b> : il faudra repasser par certaines rues.`:`<b>Degrés.</b> Tous les sommets sont de degré pair : le cycle eulérien existe et sa longueur est la somme des rues.`,table:{h:['Sommet','Degré','Parité',''],rows:degRows.map(r=>[r[0],r[1],r[2],'',false]),cls:r=>r[2]==='impair'?'no':'ok'},stats:[{c:RC.odd,t:`${S.odd.length} sommets impairs`}]});
+  if(S.odd.length){
+    Object.keys(S.sp).sort().forEach(key=>{const p=S.sp[key];
+      steps.push({...base,oddShow:true,hl:[p.path[0],p.path[p.path.length-1]],pathE:p.eids,text:`Plus court chemin entre <b>${p.path[0]}</b> et <b>${p.path[p.path.length-1]}</b> : ${p.path.join(' → ')}, coût <b>${W(p.c)}</b>.${p.eids.length>1?' Le détour est plus court ou égal à toute autre route.':''}`,
+        table:{h:['Paire','Chemin','Coût',''],rows:Object.keys(S.sp).sort().map(k=>[`${k[0]}-${k.slice(1)}`,S.sp[k].path.join('-'),W(S.sp[k].c),'',k===key])},stats:[]})});
+    const rows=S.all.map(m=>[m.pairs.map(([a,b])=>`{${a}, ${b}}`).join(' + '),m.pairs.map(([a,b])=>W(S.P2(a,b).c)).join(' + '),W(m.c),'',m===S.best]);
+    const nb=S.all.filter(m=>m.c===S.best.c).length;
+    steps.push({...base,oddShow:true,text:`<b>Couplage minimal.</b> On compare tous les appariements des sommets impairs. Le minimum vaut <b>${W(S.best.c)}</b>${nb>1?` (${nb} appariements sont à égalité, on garde le premier)`:''}.`,table:{h:['Appariement','Détail','Coût',''],rows},stats:[{c:RC.dup,t:`+ ${W(S.best.c)}`}]});
+    const dupList=[...new Set(S.dupIds)].map(i=>`${G.E[i][0]}${G.E[i][1]}`);
+    steps.push({...base,dups:S.dupIds,text:`<b>On double les rues</b> des chemins choisis : ${dupList.join(', ')}. Tous les sommets sont maintenant de degré pair, le cycle eulérien existe. Longueur = ${W(S.total)} + ${W(S.best.c)} = <b>${W(S.total+S.best.c)}</b>.`,stats:[{c:'var(--accent)',t:`total ${W(S.total+S.best.c)}`}]});
+  }
+  // Euler circuit
+  const C=S.circ;let acc=0;const done=[];
+  steps.push({...base,dups:S.dupIds,hl:[G.start],text:`<b>Construction du cycle</b> depuis ${G.start}. Voici un cycle eulérien possible (il en existe plusieurs). À la main : à chaque sommet, prends une rue non encore utilisée, sans couper le graphe restant en deux (règle de Fleury), et barre-la.`,stats:[{c:RC.done,t:`0 / ${S.ME.length} rues`}]});
+  for(let i=1;i<C.length;i++){const m=S.ME[C[i].k];acc+=m.w;done.push(C[i].k);
+    const again=m.copy>0||S.ME.some((x,j)=>x.orig===m.orig&&j!==C[i].k&&done.slice(0,-1).includes(j));
+    steps.push({...base,dups:S.dupIds,done:[...done],hl:[C[i].v],cur:[C[i-1].v,C[i].v],
+      text:`${C[i-1].v} → <b>${C[i].v}</b> (${W(m.w)})${again?' : cette rue est <b>parcourue pour la 2e fois</b>.':'.'} Parcours : ${C.slice(0,i+1).map(x=>x.v).join(' → ')}`,
+      stats:[{c:RC.done,t:`${i} / ${S.ME.length} rues`},{c:'var(--accent)',t:`${W(acc)}`}]})}
+  steps.push({...base,dups:S.dupIds,done:[...done],hl:[G.start],text:`<b>Cycle terminé</b> : ${C.map(x=>x.v).join(' → ')}.<br>Longueur minimale : <b>${W(S.total+S.best.c)}</b>${S.odd.length?` (${W(S.total)} de rues + ${W(S.best.c)} parcourus deux fois)`:''}. ${G.end?G.end(S.total+S.best.c):''}`,stats:[{c:'var(--accent)',t:`total ${W(S.total+S.best.c)}`}]});
+  return steps;
+}
+
+/* rendering */
+const svg=document.getElementById('map');const NS='http://www.w3.org/2000/svg';
+function el(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+let G=null,S=null,steps=[],k=0,timer=null;
+function edgePath(a,b,off){const [x1,y1]=G.pos[a],[x2,y2]=G.pos[b];if(!off)return {d:`M${x1} ${y1} L${x2} ${y2}`,mx:(x1+x2)/2,my:(y1+y2)/2};
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),nx=-dy/L,ny=dx/L,s=0.42*off;const cx=(x1+x2)/2+nx*s,cy=(y1+y2)/2+ny*s;return {d:`M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`,mx:(x1+x2)/2+nx*s/2,my:(y1+y2)/2+ny*s/2}}
+function render(st){svg.innerHTML='';
+  const done=new Set(st.done||[]);const pathE=new Set(st.pathE||[]);
+  const shown=S.ME.filter((m,j)=>m.copy===0||(st.dups||[]).length&&j>=G.E.length);
+  // base edges + dups
+  S.ME.forEach((m,j)=>{if(m.copy>0&&!(st.dups||[]).length)return;
+    const p=edgePath(m.a,m.b,m.copy);
+    let col='var(--grid-strong)',w=0.07,dash=null;
+    if(m.copy===0)col='var(--ink)';
+    if(m.copy>0){col=RC.dup;dash='0.16 0.1'}
+    if(pathE.has(m.orig)&&m.copy===0){col=RC.path;w=0.12}
+    if(done.has(j)){col=RC.done;w=0.12;dash=m.copy>0?'0.16 0.1':null}
+    const a={d:p.d,fill:'none',stroke:col,'stroke-width':w,'stroke-linecap':'round'};if(dash)a['stroke-dasharray']=dash;el('path',a);
+    if(m.copy===0&&!G.unweighted){const t=el('text',{x:p.mx,y:p.my-0.12,'text-anchor':'middle','font-size':0.3,fill:'var(--muted)','font-family':'JetBrains Mono, monospace',stroke:'var(--paper)','stroke-width':0.12,'paint-order':'stroke'});t.textContent=fmt(m.w)}});
+  if(st.cur){const [a,b]=st.cur;const [x1,y1]=G.pos[a],[x2,y2]=G.pos[b];el('circle',{cx:x1,cy:y1,r:0.14,fill:RC.done,opacity:0.5})}
+  const hl=new Set(st.hl||[]);
+  Object.entries(G.pos).forEach(([v,[x,y]])=>{const isOdd=st.oddShow&&S.deg[v]%2;
+    el('circle',{cx:x,cy:y,r:0.32,fill:hl.has(v)?'var(--accent)':isOdd?RC.odd:'var(--paper)',stroke:hl.has(v)?'var(--accent)':isOdd?RC.odd:'var(--ink)','stroke-width':0.05});
+    const t=el('text',{x,y:y+0.11,'text-anchor':'middle','font-size':0.32,'font-weight':700,fill:hl.has(v)||isOdd?'var(--paper)':'var(--ink)','font-family':'Space Grotesk, sans-serif'});t.textContent=v;
+    if(st.oddShow){const d=el('text',{x:x+0.42,y:y-0.3,'font-size':0.24,fill:isOdd?RC.odd:'var(--muted)','font-family':'JetBrains Mono, monospace'});d.textContent=`d=${S.deg[v]}`}
+    if(v===G.start){const s=el('text',{x,y:y+0.66,'text-anchor':'middle','font-size':0.22,fill:'var(--accent)','font-weight':600,'font-family':'Inter, sans-serif'});s.textContent='départ'}});
+}
+const $=id=>document.getElementById(id);
+function show(){const st=steps[k];render(st);$('stext').innerHTML=st.text;
+  const t=st.table;$('stable').innerHTML=t?`<table><thead><tr>${t.h.filter(Boolean).map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr class="${r[4]?'pick':''}">${r.slice(0,t.h.filter(Boolean).length).map((c,i)=>`<td class="${c==='impair'?'no':c==='pair'?'ok':''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'';
+  $('stats').innerHTML=(st.stats||[]).map(s=>`<span class="chip"><span class="dot" style="background:${s.c}"></span>${s.t}</span>`).join('');
+  $('count').textContent=`Étape ${k+1} / ${steps.length}`;$('slider').max=steps.length-1;$('slider').value=k;
+  $('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===steps.length-1}
+function stop(){if(timer){clearInterval(timer);timer=null;$('play').textContent='Lecture'}}
+function pick(i){G=GRAPHS[i];S=solve(G);steps=buildSteps(G);k=0;stop();$('mname').textContent=G.name;$('msrc').textContent=G.src;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));try{localStorage.setItem('cpp-tab',String(i))}catch(e){}show()}
+GRAPHS.forEach((g,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=g.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<steps.length-1){k++;show()}};$('prev').onclick=()=>{if(k>0){k--;show()}};$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+$('play').onclick=()=>{if(timer){stop();return}$('play').textContent='Pause';timer=setInterval(()=>{if(k<steps.length-1){k++;show()}else stop()},1300)};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')$('next').click();else if(e.key==='ArrowLeft')$('prev').click()});
+let s0=0;try{const v=+localStorage.getItem('cpp-tab');if(v>=0&&v<GRAPHS.length)s0=v}catch(e){}
+pick(s0);
+</script>
+
+</body></html>

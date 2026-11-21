@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AI09 · Révisions</title>
+<meta name="description" content="Ce qu'il faut réviser pour le final AI09 et les sections de révision.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+<script>try{var t=localStorage.getItem("rv-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+</head>
+<body data-page="uv" data-uv="ai09">
+<header id="top" class="top"></header>
+<main class="wrap">
+  <section class="hero">
+    <p class="kicker">AI09 · Final RO06-AI09</p>
+    <h1>Ce qu'il faut réviser pour le final</h1>
+    <p class="lead">Les 17 annales (2005 à 2025) suivent presque toujours le même plan en trois copies. Les tournées (copie 3) sont déjà bien couvertes ; la PPC et la PLNE pèsent à elles deux une dizaine de points et passent en premier.</p>
+  </section>
+
+  <div class="layout-uv">
+    <section class="panel" aria-labelledby="t-format">
+      <h3 id="t-format">Format de l'épreuve</h3>
+      <p>2 h, une feuille A4 manuscrite recto-verso autorisée. 3 ou 4 exercices de 4 à 6 points, <strong>chacun sur une copie séparée</strong> (sinon −1 point).</p>
+      <div class="exam">
+        <div class="copie status-todo"><div class="n">Copie 1</div><div class="t">PPC en GNU-Prolog</div><div class="pts">5–6 pts</div><div class="skip">Dans 16 annales sur 17. Pas encore travaillé.</div></div>
+        <div class="copie status-todo"><div class="n">Copie 2</div><div class="t">Modélisation PL / PLNE</div><div class="pts">5–6 pts</div><div class="skip">Tombe chaque année. Pas encore travaillé.</div></div>
+        <div class="copie status-ok"><div class="n">Copie 3</div><div class="t">Tournées, graphes, heuristiques</div><div class="pts">8–10 pts</div><div class="skip">Couvert par la section <a href="/ai09/metaheuristique">Métaheuristique</a>.</div></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-prio">
+      <h2 class="section-title" id="t-prio">Priorités, dans l'ordre <span class="count" id="progress-label"></span></h2>
+      <div class="progress" aria-hidden="true"><span></span></div>
+      <ol class="prio">
+        <li><input type="checkbox" id="p-prolog" aria-labelledby="pl-prolog"><div><div class="ptitle" id="pl-prolog"><span class="rank">1</span> Programmation par contraintes en GNU-Prolog <span class="badge-hot">copie 1</span></div>
+          <div class="pdesc">Écrire de tête <code>fd_domain</code>, <code>fd_all_different</code>, <code>fd_labeling</code>, <code>fd_minimize</code>, les contraintes réifiées <code>#&lt;=&gt;</code>, <code>#==&gt;</code>, <code>#\/</code> et <code>fd_exactly</code>. Annales : A25 (énigme sel et moutarde), A23 (partition), A21 (tripartition), A18 et P18 (couverture de sommets), A16 (ordonnancement).</div></div></li>
+        <li><input type="checkbox" id="p-plne" aria-labelledby="pl-plne"><div><div class="ptitle" id="pl-plne"><span class="rank">2</span> Modéliser en PLNE les problèmes classiques <span class="badge-hot">copie 2</span></div>
+          <div class="pdesc">Variables, objectif, contraintes, en français puis en maths. Affectation (A25), partition et couverture d'ensemble (A23, P19), ordonnancement avec disjonction et big-M (A21), planification sur plusieurs périodes avec stock ou rotation de personnel (A18, A16, A14, A12), bin packing et sac à dos (P18, P19, A06).</div></div></li>
+        <li><input type="checkbox" id="p-mtz" aria-labelledby="pl-mtz"><div><div class="ptitle" id="pl-mtz"><span class="rank">3</span> Formulations PLNE du TSP : MTZ et élimination des sous-tours</div>
+          <div class="pdesc">Écrire les deux et les comparer (A23 Ex III, A25 Ex IV). Ton projet TOP couvre déjà l'essentiel : une relecture suffit. Antisèche plus bas.</div></div></li>
+        <li><input type="checkbox" id="p-vrp" aria-labelledby="pl-vrp"><div><div class="ptitle" id="pl-vrp"><span class="rank">4</span> VRP heuristique : PPV, Gillett-Miller, Shamos, Fletcher</div>
+          <div class="pdesc">Tombé 6 fois (minoterie A08/A16/A21, grille Q = 8 A06/A18/A23). <a href="/ai09/metaheuristique/ateliers/vrp-minoterie.html">Atelier minoterie</a> · <a href="/ai09/metaheuristique/ateliers/gillett-miller-fletcher.html">Atelier Gillett-Miller + Fletcher</a> · <a href="/fiche.html?src=%2Fai09%2Fmetaheuristique%2Ffiches%2Fvrp-heuristique.md">Fiche</a></div></div></li>
+        <li><input type="checkbox" id="p-postier" aria-labelledby="pl-postier"><div><div class="ptitle" id="pl-postier"><span class="rank">5</span> Postier chinois</div>
+          <div class="pdesc">Tombé 6 fois, sur trois graphes seulement (réseau A–K, quartiers Q, Q', Q''). <a href="/ai09/metaheuristique/ateliers/postier-chinois.html">Atelier</a> · <a href="/fiche.html?src=%2Fai09%2Fmetaheuristique%2Ffiches%2Fpostier-chinois.md">Fiche</a></div></div></li>
+        <li><input type="checkbox" id="p-little" aria-labelledby="pl-little"><div><div class="ptitle" id="pl-little"><span class="rank">6</span> Little (PSE) sur une matrice 6×6</div>
+          <div class="pdesc">Tombé 4 fois (A11, A12, A14, A15). <a href="/ai09/metaheuristique/ateliers/little.html">Atelier</a> · <a href="/fiche.html?src=%2Fai09%2Fmetaheuristique%2Ffiches%2Flittle-christofides-beasley.md">Fiche</a></div></div></li>
+        <li><input type="checkbox" id="p-beasley" aria-labelledby="pl-beasley"><div><div class="ptitle" id="pl-beasley"><span class="rank">7</span> Beasley et Christofides</div>
+          <div class="pdesc">Beasley 4 fois, Christofides 3 fois, souvent sur la même instance (A14 = A15). <a href="/ai09/metaheuristique/ateliers/beasley.html">Atelier Beasley</a> · <a href="/ai09/metaheuristique/ateliers/christofides.html">Atelier Christofides</a> · <a href="/fiche.html?src=%2Fai09%2Fmetaheuristique%2Ffiches%2Fbeasley-christofides.md">Fiche</a></div></div></li>
+        <li><input type="checkbox" id="p-theorie" aria-labelledby="pl-theorie"><div><div class="ptitle" id="pl-theorie"><span class="rank">8</span> Théorie du TSP : ratios, bornes, 2-opt</div>
+          <div class="pdesc">PPV sans ratio constant, arbre doublé ×2, Christofides ×3/2 (inégalité triangulaire obligatoire), prouver qu'un cycle est optimal par une borne (A21 Ex IV). <a href="/fiche.html?src=%2Fai09%2Fmetaheuristique%2Ffiches%2Fbeasley-christofides.md#question-de-cours-a12-le-ratio-3-2">Preuve du ratio 3/2</a></div></div></li>
+      </ol>
+      <p class="skip">À laisser de côté : Monte-Carlo, finance (VAN, TRI) et PERT, qui ne tombent plus depuis 2018. Les coches sont gardées dans ton navigateur.</p>
+    </section>
+
+    <section aria-labelledby="t-cheat">
+      <h2 class="section-title" id="t-cheat">Antisèche</h2>
+      <div class="cheats">
+        <div class="panel">
+          <h3>Squelette GNU-Prolog</h3>
+<pre><code>resoudre([X,Y,Z]) :-
+    fd_domain([X,Y,Z], 1, 9),
+    fd_all_different([X,Y,Z]),
+    X + Y #= Z,
+    fd_minimize(fd_labeling([X,Y,Z]), Z).</code></pre>
+          <ul class="tight">
+            <li><code>B #&lt;=&gt; (X #= 3)</code> : B vaut 1 si et seulement si X = 3</li>
+            <li><code>A #==&gt; B</code> implique, <code>A #\/ B</code> ou, <code>#\ A</code> non</li>
+            <li><code>fd_exactly(N, L, V)</code> : exactement N éléments de L valent V</li>
+            <li><code>fd_domain_bool(L)</code> pour des variables 0/1</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>TSP : MTZ et sous-tours</h3>
+          <p>x<sub>ij</sub> ∈ {0,1}, min Σ c<sub>ij</sub> x<sub>ij</sub>, avec Σ<sub>j</sub> x<sub>ij</sub> = 1 et Σ<sub>i</sub> x<sub>ij</sub> = 1 pour tout sommet.</p>
+          <p><strong>MTZ</strong> : u<sub>i</sub> − u<sub>j</sub> + n·x<sub>ij</sub> ≤ n − 1 pour i ≠ j dans {2,…,n}, avec 2 ≤ u<sub>i</sub> ≤ n. Environ n² contraintes, mais relaxation continue faible.</p>
+          <p><strong>Sous-tours (DFJ)</strong> : Σ<sub>i,j∈S</sub> x<sub>ij</sub> ≤ |S| − 1 pour tout S ⊂ V, 2 ≤ |S| ≤ n − 1. 2<sup>n</sup> contraintes, relaxation plus forte : on les ajoute au fur et à mesure (coupes).</p>
+        </div>
+        <div class="panel">
+          <h3>Pièges qui coûtent des points</h3>
+          <ul class="tight">
+            <li>Beasley : le coût d'un arc inclut l'aller et le retour au dépôt.</li>
+            <li>Christofides : coupler seulement les sommets <em>impairs de l'arbre</em> ; ratio 3/2 seulement avec l'inégalité triangulaire.</li>
+            <li>Little : interdire l'arc qui fermerait un sous-circuit après chaque « avec ».</li>
+            <li>Gillett-Miller : le dépôt fait partie du TSP de chaque secteur ; annoncer la règle des ex æquo.</li>
+            <li>Postier chinois : écrire les trois appariements et donner un cycle explicite depuis le dépôt.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-sec">
+      <h2 class="section-title" id="t-sec">Sections <span class="count" id="sections-count"></span></h2>
+      <div class="grid" id="sections"></div>
+    </section>
+  </div>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="/assets/data.js"></script>
+<script src="/assets/app.js"></script>
+</body>
+</html>

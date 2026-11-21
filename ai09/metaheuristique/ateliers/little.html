@@ -1,0 +1,259 @@
+<!doctype html><html lang="fr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<title>Atelier PSE Little</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: carte quadrillée (papier millimétré) à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#8a97a8;
+  --font-display:"Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#6f7e91; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:70ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.step b{font-weight:600}
+.mono,.step code{font-family:var(--font-mono);font-size:.85em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.stats{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-mono);font-size:.8rem;padding:3px 8px;border-radius:999px;border:1px solid var(--line);display:inline-flex;gap:6px;align-items:center}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.data{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.data summary{cursor:pointer;font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+<style>.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}</style>
+
+<style>
+.main2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main2{grid-template-columns:minmax(0,1fr)}}
+.mx{width:auto;border-collapse:separate;border-spacing:3px;font-family:var(--font-mono);font-size:.9rem;margin:0 auto}
+.mx th{color:var(--muted);font-weight:600;text-transform:none;letter-spacing:0;border:0;padding:2px 6px;text-align:center}
+.mx td{width:3.2em;height:2.4em;text-align:center;border:1px solid var(--line);border-radius:6px;padding:0;position:relative;background:var(--paper);white-space:nowrap}
+.mx td.z{background:var(--accent-soft);font-weight:600}
+.mx td.pick{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.mx td.inf{color:var(--muted)}
+.mx td.par{background:var(--r1);color:var(--paper);border-color:var(--r1)}
+.mx td sup{position:absolute;top:1px;right:3px;font-size:.65rem;color:var(--r3);font-weight:600}
+.mx td.pick sup{color:var(--paper)}
+.mx .mn{color:var(--r1);font-size:.8rem;font-weight:600;border:0;background:none}
+.treebox{overflow-x:auto}
+.treebox svg{max-width:none;margin:0 auto}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Atelier PSE : la méthode de Little</h1>
+    <p>Procédure par séparation et évaluation pour le voyageur de commerce : réduction de la matrice, regrets, séparation « avec / sans » un arc, coupes. Choisis une matrice puis avance avec « Étape suivante » ou les flèches du clavier.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <div class="main2">
+    <div class="board">
+      <div class="boardh"><h3 id="mtitle">Matrice</h3><span class="badge" id="mbound"></span></div>
+      <div class="tbl" id="matrix"></div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="mname"></h2>
+      <div class="badge" id="msrc"></div>
+      <div class="step" id="stext"></div>
+      <div class="stats" id="stats"></div>
+      <details class="rule"><summary><b>La méthode</b></summary><ol>
+        <li><b>Réduction</b> : soustraire le minimum de chaque ligne, puis de chaque colonne. Somme des minimums = évaluation par défaut (borne inférieure).</li>
+        <li><b>Regrets</b> : pour chaque zéro (i, j), θ = plus petit de la ligne i (hors j) + plus petit de la colonne j (hors i). C'est le coût minimal à payer si on <b>n'emprunte pas</b> i → j.</li>
+        <li><b>Séparation</b> sur le zéro de plus grand regret. « Sans i→j » : borne + θ. « Avec i→j » : on supprime la ligne i et la colonne j, on interdit l'arc qui fermerait un sous-circuit parasite, on réduit à nouveau.</li>
+        <li>On développe le nœud de plus petite borne. On coupe tout nœud dont la borne ≥ meilleure tournée trouvée.</li>
+      </ol></details>
+    </div>
+  </div>
+
+  <div class="board">
+    <div class="boardh"><h3>Arborescence</h3><span class="badge">nœud = borne · en vert : nœud courant · barré : coupé</span></div>
+    <div class="treebox"><svg id="tree" viewBox="0 0 100 40"></svg></div>
+  </div>
+</div>
+
+<script>
+const INF=Infinity;
+const DATA=[
+ {name:'TD PSE (ramassage scolaire)',src:'TD PSE.jpg · Little, Murty, Sweeney, Karel (1963) · matrice non symétrique · départ et retour imposés en A (l\'école)',L:'ABCDEF',
+  M:[[INF,27,43,16,30,26],[7,INF,16,1,30,25],[20,13,INF,35,5,0],[21,16,25,INF,18,18],[12,46,27,28,INF,5],[23,5,5,9,5,INF]]},
+ {name:'Annale A14 / A15',src:'Exercice IV · matrice symétrique · départ et retour imposés en A (le dépôt)',L:'ABCDEF',
+  M:[[INF,1,4,4,4,5],[1,INF,1,2,4,5],[4,1,INF,3,4,4],[4,2,3,INF,2,4],[4,4,4,2,INF,2],[5,5,4,4,2,INF]]},
+ {name:'Annale A11',src:'Exercice III · matrice non symétrique · pas de départ imposé (« revenir à son point de départ ») : on écrit la tournée depuis A',L:'ABCDEF',
+  M:[[INF,1,7,3,14,2],[3,INF,6,9,1,24],[6,14,INF,3,7,3],[2,3,5,INF,9,11],[15,7,11,2,INF,4],[20,5,13,4,18,INF]]}
+];
+const cp=D=>D.map(r=>r.slice());
+const v=x=>x===INF?'∞':String(x);
+
+function reduce(D,rows,cols){const D2=cp(D);const rmin={},cmin={};let t=0;
+  rows.forEach(i=>{const m=Math.min(...cols.map(j=>D2[i][j]));rmin[i]=m;if(m>0&&m<INF){cols.forEach(j=>D2[i][j]-=m);t+=m}});
+  cols.forEach(j=>{const m=Math.min(...rows.map(i=>D2[i][j]));cmin[j]=m;if(m>0&&m<INF){rows.forEach(i=>D2[i][j]-=m);t+=m}});
+  const bad=rows.some(i=>rmin[i]===INF)||cols.some(j=>cmin[j]===INF);
+  return {D:D2,t:bad?INF:t,rmin,cmin}}
+function reduceRows(D,rows,cols){const D2=cp(D);const rmin={};let t=0;rows.forEach(i=>{const m=Math.min(...cols.map(j=>D2[i][j]));rmin[i]=m;if(m>0&&m<INF){cols.forEach(j=>D2[i][j]-=m);t+=m}});return {D:D2,t,rmin}}
+function chains(arcs){const nx={},pv={};arcs.forEach(([a,b])=>{nx[a]=b;pv[b]=a});const out=[];Object.keys(nx).map(Number).forEach(a=>{if(pv[a]===undefined){const c=[a];while(nx[c[c.length-1]]!==undefined)c.push(nx[c[c.length-1]]);out.push(c)}});return out}
+
+function run(ds){
+  const L=ds.L,n=L.length,M=ds.M;const nm=i=>L[i];const arcName=([a,b])=>nm(a)+nm(b);
+  const steps=[];const nodes=[];let UB=INF,best=null;
+  const all=[...Array(n).keys()];
+  const snap=(extra)=>({nodes:nodes.map(x=>({...x})),UB,...extra});
+  const tourCost=arcs=>arcs.reduce((s,[a,b])=>s+M[a][b],0);
+  // root
+  steps.push(snap({text:`Matrice des durées d<sub>ij</sub>. Les ∞ sur la diagonale interdisent de rester sur place. Première étape : trouver une <b>évaluation par défaut</b> (borne inférieure) en réduisant la matrice.`,mat:{D:M,rows:all,cols:all},cur:null}));
+  const r1=reduceRows(M,all,all);
+  steps.push(snap({text:`<b>Réduction des lignes</b> : on retire de chaque ligne son minimum (en rouge à droite). Total retiré : <b>${r1.t}</b>. Toute tournée quitte chaque ville une fois, elle paie donc au moins ces minimums.`,mat:{D:M,rows:all,cols:all,rmin:r1.rmin},cur:null}));
+  const r2=reduce(M,all,all);
+  const colPart=r2.t-r1.t;
+  steps.push(snap({text:`<b>Réduction des colonnes</b> sur la matrice obtenue : on retire le minimum de chaque colonne (en rouge en bas). Total : <b>${colPart}</b>.${colPart===0?' Toutes les colonnes ont déjà un zéro.':''} Évaluation par défaut de la racine : ${r1.t} + ${colPart} = <b>${r2.t}</b>.`,mat:{D:r1.D,rows:all,cols:all,cmin:r2.cmin},cur:null}));
+  const root={id:0,parent:null,label:'racine',bound:r2.t,D:r2.D,rows:all,cols:all,arcs:[],state:'open',side:null};nodes.push(root);
+  steps.push(snap({text:`Racine de l'arborescence : borne <b>${root.bound}</b>. Chaque ligne et chaque colonne contient au moins un zéro.`,mat:{D:root.D,rows:all,cols:all},cur:0}));
+  let guard=0;
+  while(guard++<200){
+    const open=nodes.filter(x=>x.state==='open');if(!open.length)break;
+    open.sort((a,b)=>a.bound-b.bound||(a.side==='avec'?-1:1)-(b.side==='avec'?-1:1)||b.id-a.id);
+    const N=open[0];
+    if(N.bound>=UB){open.forEach(x=>x.state='cut');
+      steps.push(snap({text:`Tous les nœuds encore ouverts ont une borne ≥ <b>${UB}</b>, la meilleure tournée trouvée. On les coupe : la tournée <b>${best.map(nm).join(' → ')}</b> de coût <b>${UB}</b> est <b>optimale</b>.`,mat:null,cur:null,final:true}));break}
+    // 2x2 completion
+    if(N.rows.length===2){
+      const [r0,r1_]=N.rows,[c0,c1]=N.cols;let comp=null;
+      for(const pr of [[[r0,c0],[r1_,c1]],[[r0,c1],[r1_,c0]]]){const arcs=N.arcs.concat(pr);if(pr.some(([a,b])=>N.D[a][b]===INF))continue;
+        const nx={};arcs.forEach(([a,b])=>nx[a]=b);let x=0,k=0;do{x=nx[x];k++}while(x!==0&&x!==undefined&&k<=n);if(x===0&&k===n){comp=arcs;break}}
+      if(!comp){N.state='cut';steps.push(snap({text:`Nœud « ${N.label} » : impossible de compléter la tournée. On le coupe.`,mat:{D:N.D,rows:N.rows,cols:N.cols},cur:N.id}));continue}
+      const cost=tourCost(comp);const nxm={};comp.forEach(([a,b])=>nxm[a]=b);const tour=[0];while(tour.length<=n){tour.push(nxm[tour[tour.length-1]])}
+      N.state='leaf';N.cost=cost;
+      const last=comp.slice(-2).map(arcName).join(' et ');
+      let txt=`Nœud « ${N.label} » (borne ${N.bound}) : il reste une matrice 2×2, les deux derniers arcs sont imposés : <b>${last}</b>. Tournée complète <b>${tour.map(nm).join(' → ')}</b>, coût <b>${cost}</b>.`;
+      if(cost<UB){UB=cost;best=tour;txt+=` C'est la meilleure tournée trouvée : elle devient la borne supérieure.`;
+        nodes.forEach(x=>{if(x.state==='open'&&x.bound>=UB)x.state='cut'});}
+      steps.push(snap({text:txt,mat:{D:N.D,rows:N.rows,cols:N.cols,picks:comp.slice(-2)},cur:N.id}));continue}
+    // regrets
+    const regs=[];N.rows.forEach(i=>N.cols.forEach(j=>{if(N.D[i][j]===0){const a=Math.min(...N.cols.filter(k=>k!==j).map(k=>N.D[i][k]));const c=Math.min(...N.rows.filter(k=>k!==i).map(k=>N.D[k][j]));regs.push({i,j,th:a+c,a,c})}}));
+    regs.sort((x,y)=>y.th-x.th||x.i-y.i||x.j-y.j);const R=regs[0];
+    const th={};regs.forEach(r=>th[r.i+','+r.j]=r.th);
+    const ties=regs.filter(r=>r.th===R.th).length;
+    steps.push(snap({text:`On développe le nœud « ${N.label} » (borne <b>${N.bound}</b>, la plus petite parmi les nœuds ouverts). <b>Regrets</b> des zéros (petits chiffres violets) : le plus grand est <b>θ(${nm(R.i)}${nm(R.j)}) = ${v(R.a)} + ${v(R.c)} = ${v(R.th)}</b>${ties>1?` (égalité, on prend le premier dans l'ordre des lignes)`:''}. On sépare sur l'arc ${nm(R.i)} → ${nm(R.j)}.`,mat:{D:N.D,rows:N.rows,cols:N.cols,theta:th,picks:[[R.i,R.j]]},cur:N.id}));
+    // sans
+    const Ds=cp(N.D);Ds[R.i][R.j]=INF;const rs=reduce(Ds,N.rows,N.cols);
+    const S={id:nodes.length,parent:N.id,label:`sans ${nm(R.i)}${nm(R.j)}`,bound:N.bound+rs.t,D:rs.D,rows:N.rows,cols:N.cols,arcs:N.arcs,state:'open',side:'sans'};nodes.push(S);
+    // avec
+    const rows2=N.rows.filter(x=>x!==R.i),cols2=N.cols.filter(x=>x!==R.j);const arcs2=N.arcs.concat([[R.i,R.j]]);
+    const Da=cp(N.D);let par=null;chains(arcs2).forEach(c=>{const e=c[c.length-1],s=c[0];if(rows2.includes(e)&&cols2.includes(s)){Da[e][s]=INF;if(c.includes(R.i))par=[e,s]}});
+    const ra=reduce(Da,rows2,cols2);
+    const A={id:nodes.length,parent:N.id,label:`avec ${nm(R.i)}${nm(R.j)}`,bound:N.bound+ra.t,D:ra.D,rows:rows2,cols:cols2,arcs:arcs2,state:'open',side:'avec'};nodes.push(A);
+    N.state='done';
+    [S,A].forEach(x=>{if(x.bound>=UB)x.state='cut'});
+    steps.push(snap({text:`Branche <b>sans ${nm(R.i)}${nm(R.j)}</b> : on interdit l'arc (∞). Il faudra payer au moins le regret : borne ${N.bound} + ${v(R.th)} = <b>${v(S.bound)}</b>.${S.state==='cut'?` Coupé, car ≥ ${UB}.`:''}`,mat:{D:Ds,rows:N.rows,cols:N.cols,picks:[[R.i,R.j]]},cur:S.id}));
+    const chainTxt=chains(arcs2).filter(c=>c.length>1).map(c=>c.map(nm).join('→')).join(', ');
+    steps.push(snap({text:`Branche <b>avec ${nm(R.i)}${nm(R.j)}</b> : on supprime la ligne ${nm(R.i)} et la colonne ${nm(R.j)}. Chaîne en cours : ${chainTxt}.${par?` On interdit <b>${nm(par[0])} → ${nm(par[1])}</b> (case rouge), qui fermerait un sous-circuit parasite.`:''} Nouvelle réduction : +${v(ra.t)}, borne <b>${v(A.bound)}</b>.${A.state==='cut'?` Coupé, car ≥ ${UB}.`:''}`,mat:{D:Da,rows:rows2,cols:cols2,par,rmin:ra.t>0?ra.rmin:null,cmin:ra.t>0?ra.cmin:null},cur:A.id}));
+  }
+  if(!steps[steps.length-1].final){steps.push(snap({text:`Plus aucun nœud ouvert : la tournée <b>${best.map(nm).join(' → ')}</b> de coût <b>${UB}</b> est optimale.`,mat:null,cur:null,final:true}))}
+  return {steps,nodes,L};
+}
+
+/* layout tree */
+function layout(nodes){const kids={};nodes.forEach(x=>{if(x.parent!==null)(kids[x.parent]=kids[x.parent]||[]).push(x)});
+  Object.values(kids).forEach(a=>a.sort((p,q)=>(p.side==='avec'?0:1)-(q.side==='avec'?0:1)));
+  const pos={};let leaf=0;let maxd=0;
+  (function rec(x,d){maxd=Math.max(maxd,d);const ch=kids[x.id]||[];if(!ch.length){pos[x.id]={x:leaf++,y:d};return}ch.forEach(c=>rec(c,d+1));const xs=ch.map(c=>pos[c.id].x);pos[x.id]={x:(Math.min(...xs)+Math.max(...xs))/2,y:d}})(nodes[0],0);
+  return {pos,w:Math.max(leaf,1),h:maxd+1}}
+
+const $=id=>document.getElementById(id);const NS='http://www.w3.org/2000/svg';
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+let R=null,LAY=null,k=0,timer=null,DSI=0;
+function drawTree(st){const svg=$('tree');svg.innerHTML='';const W=LAY.w*1.6+0.6,H=LAY.h*1.3+0.4;svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.width=Math.round(W*62)+'px';svg.style.height=Math.round(H*62)+'px';
+  const X=i=>0.3+0.8+LAY.pos[i].x*1.6,Y=i=>0.55+LAY.pos[i].y*1.3;
+  const shown=new Map(st.nodes.map(x=>[x.id,x]));
+  st.nodes.forEach(x=>{if(x.parent===null)return;const g=el('g',{},svg);
+    el('line',{x1:X(x.parent),y1:Y(x.parent)+0.28,x2:X(x.id),y2:Y(x.id)-0.28,stroke:'var(--grid-strong)','stroke-width':0.03},g);
+    const t=el('text',{x:(X(x.parent)+X(x.id))/2+(x.side==='avec'?-0.12:0.12),y:(Y(x.parent)+Y(x.id))/2+0.05,'text-anchor':x.side==='avec'?'end':'start','font-size':0.2,fill:'var(--muted)','font-family':'JetBrains Mono, monospace'},g);t.textContent=x.label});
+  st.nodes.forEach(x=>{const cur=st.cur===x.id;const cut=x.state==='cut';const leaf=x.state==='leaf';
+    const fill=cur?'var(--r2)':leaf?'var(--accent)':'var(--paper)';const stroke=cur?'var(--r2)':leaf?'var(--accent)':cut?'var(--muted)':'var(--ink)';
+    el('rect',{x:X(x.id)-0.48,y:Y(x.id)-0.27,width:0.96,height:0.54,rx:0.12,fill,stroke,'stroke-width':0.035,opacity:cut?0.55:1},svg);
+    const t=el('text',{x:X(x.id),y:Y(x.id)+0.08,'text-anchor':'middle','font-size':0.24,'font-weight':700,fill:cur||leaf?'var(--paper)':'var(--ink)','font-family':'Space Grotesk, sans-serif',opacity:cut?0.6:1},svg);t.textContent=v(x.bound);
+    if(cut)el('line',{x1:X(x.id)-0.5,y1:Y(x.id)+0.3,x2:X(x.id)+0.5,y2:Y(x.id)-0.3,stroke:'var(--no)','stroke-width':0.04},svg);
+    if(leaf){const c=el('text',{x:X(x.id),y:Y(x.id)+0.5,'text-anchor':'middle','font-size':0.19,fill:'var(--accent)','font-weight':600,'font-family':'Inter, sans-serif'},svg);c.textContent=`tournée ${x.cost}`}})}
+function drawMatrix(st){const m=st.mat;if(!m){$('matrix').innerHTML='<p class="step" style="text-align:center;color:var(--muted)">Exploration terminée.</p>';$('mtitle').textContent='Matrice';return}
+  const L=R.L;const picks=new Set((m.picks||[]).map(([a,b])=>a+','+b));const par=m.par?m.par.join(','):null;
+  let h='<table class="mx"><thead><tr><th></th>'+m.cols.map(j=>`<th>${L[j]}</th>`).join('')+(m.rmin?'<th></th>':'')+'</tr></thead><tbody>';
+  m.rows.forEach(i=>{h+=`<tr><th>${L[i]}</th>`;m.cols.forEach(j=>{const x=m.D[i][j];const key=i+','+j;let cls=x===INF?'inf':x===0?'z':'';if(picks.has(key))cls='pick';if(par===key)cls='par';
+    const sup=m.theta&&m.theta[key]!==undefined?`<sup>${v(m.theta[key])}</sup>`:'';h+=`<td class="${cls}">${v(x)}${sup}</td>`});
+    if(m.rmin)h+=`<td class="mn">${m.rmin[i]>0&&m.rmin[i]<INF?'−'+m.rmin[i]:''}</td>`;h+='</tr>'});
+  if(m.cmin){h+='<tr><th></th>'+m.cols.map(j=>`<td class="mn">${m.cmin[j]>0&&m.cmin[j]<INF?'−'+m.cmin[j]:''}</td>`).join('')+'</tr>'}
+  h+='</tbody></table>';$('matrix').innerHTML=h;$('mtitle').textContent=`Matrice ${m.rows.length}×${m.cols.length}`}
+function show(){const st=R.steps[k];drawMatrix(st);drawTree(st);$('stext').innerHTML=st.text;
+  const open=st.nodes.filter(x=>x.state==='open').length;
+  $('mbound').textContent=st.UB<INF?`meilleure tournée : ${st.UB}`:'aucune tournée trouvée';
+  $('stats').innerHTML=`<span class="chip"><span class="dot" style="background:var(--ink)"></span>${st.nodes.length} nœuds</span><span class="chip"><span class="dot" style="background:var(--r2)"></span>${open} ouverts</span><span class="chip"><span class="dot" style="background:var(--accent)"></span>${st.UB<INF?'borne sup. '+st.UB:'pas encore de tournée'}</span>`;
+  $('count').textContent=`Étape ${k+1} / ${R.steps.length}`;$('slider').max=R.steps.length-1;$('slider').value=k;$('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===R.steps.length-1}
+function stop(){if(timer){clearInterval(timer);timer=null;$('play').textContent='Lecture'}}
+function pick(i){DSI=i;R=run(DATA[i]);LAY=layout(R.steps[R.steps.length-1].nodes);k=0;stop();$('mname').textContent=DATA[i].name;$('msrc').textContent=DATA[i].src;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));try{localStorage.setItem('pse-tab',String(i))}catch(e){}show()}
+DATA.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=d.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<R.steps.length-1){k++;show()}};$('prev').onclick=()=>{if(k>0){k--;show()}};$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+$('play').onclick=()=>{if(timer){stop();return}$('play').textContent='Pause';timer=setInterval(()=>{if(k<R.steps.length-1){k++;show()}else stop()},1500)};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')$('next').click();else if(e.key==='ArrowLeft')$('prev').click()});
+let s0=0;try{const x=+localStorage.getItem('pse-tab');if(x>=0&&x<DATA.length)s0=x}catch(e){}
+pick(s0);
+</script>
+
+</body></html>

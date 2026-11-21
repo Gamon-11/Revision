@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier Beasley</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board,.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0}
+.board{padding:10px}
+.notes{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:4px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.enonce{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+td.no{color:var(--no);text-decoration:line-through}
+tr.cur td{background:var(--accent-soft)}
+tr.win td{color:var(--ok);font-weight:600}
+.mx{width:auto;border-collapse:separate;border-spacing:3px;font-family:var(--font-mono);font-size:.85rem;margin:0 auto}
+.mx th{text-transform:none;letter-spacing:0;border:0;padding:2px 6px;text-align:center;font-weight:600}
+.mx td{width:2.6em;height:2.1em;text-align:center;border:1px solid var(--line);border-radius:6px;padding:0;background:var(--paper)}
+.mx td.use{background:var(--accent);color:var(--paper);border-color:var(--accent);font-weight:600}
+.mx td.dg{color:var(--muted)}
+.sub{font-family:var(--font-display);font-size:.95rem;margin:4px 0 0}
+</style>
+</head>
+<body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<div class="wrap">
+  <header>
+    <h1>Atelier Beasley : découper un tour géant</h1>
+    <p>« Route first, cluster second » : on garde l'ordre du tour géant et on cherche où le couper, par un plus court chemin dans un graphe auxiliaire. Choisis un exercice puis avance avec « Étape suivante » ou les flèches du clavier. Fais l'étape sur ta feuille avant de cliquer.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3>Graphe auxiliaire</h3><span class="badge">arc (i−1) → j = une tournée qui sert les clients i à j</span></div>
+      <svg id="aux" viewBox="0 0 700 250" role="img" aria-label="Graphe auxiliaire de Beasley"></svg>
+      <div class="boardh"><h3 id="vtitle">Carte</h3><span class="badge" id="vbadge"></span></div>
+      <div id="view"></div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="dname"></h2>
+      <div class="enonce" id="denonce"></div>
+      <div class="step" id="stext"></div>
+      <div id="tables"></div>
+      <details class="rule"><summary><b>La méthode</b></summary><ol>
+        <li>Numéroter les clients dans l'ordre du tour géant : 1 … n. Sommets 0 … n.</li>
+        <li>Pour chaque suite i … j qui tient dans un véhicule (charge ≤ Q ou longueur ≤ L), arc (i−1) → j de coût dépôt → i → … → j → dépôt.</li>
+        <li>Plus court chemin de 0 à n : V(0) = 0, V(j) = min sur les arcs (i−1) → j de V(i−1) + coût.</li>
+        <li>Remonter les prédécesseurs depuis n : chaque arc du chemin est une tournée.</li>
+      </ol></details>
+    </div>
+  </div>
+</div>
+<script>
+const r1=x=>Math.round(x*10)/10;
+const fmt=x=>(Number.isInteger(x)?String(x):x.toFixed(1)).replace('.',',');
+const DATA=[
+ {name:'Annale A15 (capacité Q = 5)',kind:'matrix',
+  enonce:'A15, exercice IV, question 3b (même calcul en A14). Dépôt A. Demandes B = 3, C = 1, D = 2, E = 3, F = 1, véhicules de capacité 5. « En utilisant l\'algorithme de Beasley, donner le découpage optimal associé au tour géant (B, C, D, E, F). »',
+  L:'ABCDEF',depot:0,M:[[0,1,4,4,4,5],[1,0,1,2,4,5],[4,1,0,3,4,4],[4,2,3,0,2,4],[4,4,4,2,0,2],[5,5,4,4,2,0]],
+  dem:{1:3,2:1,3:2,4:3,5:1},Q:5,order:[1,2,3,4,5],
+  concl:'Ce découpage est optimal <b>pour l\'ordre (B, C, D, E, F)</b>, pas pour le VRP : le PPV de la question 3a trouve 21 avec 2 véhicules (A B C F A, puis A D E A). À écrire sur la copie.'},
+ {name:'Annale A07 (distance L = 7)',kind:'grid',
+  enonce:'A07, copie I, exercice 2, partie 2. Grille de mailles unitaires, distances euclidiennes (√2 = 1,4 ; √5 = 2,2 ; √10 = 3,2). Le tour de Shamos de la partie 1 est d → 1 → 2 → 5 → 6 → 4 → 3 → d (9,8). « Le véhicule ne peut pas parcourir une distance supérieure à L = 7. Effectuer le découpage optimal avec Beasley. Indiquer le coût total. »',
+  L:['d','1','2','3','4','5','6'],depot:0,P:[[0,3],[2,4],[3,3],[0,2],[1,2],[3,2],[1,1]],W:4,H:4,
+  Lmax:7,order:[1,2,5,6,4,3],
+  concl:'Le client 5 est trop loin du dépôt pour être servi avec un voisin : il a sa propre tournée. Sans limite, un seul véhicule ferait 9,8 ; avec L = 7, il faut 3 tournées et 18,2.'},
+ {name:'Entraînement (capacité Q = 6)',kind:'grid',
+  enonce:'Exercice inventé dans le style des annales. Grille unitaire, distances euclidiennes arrondies à 0,1 (√2 = 1,4 ; √5 = 2,2 ; √10 = 3,2 ; √13 = 3,6 ; √17 = 4,1). Dépôt d en (2, 0). Demandes : 1 → 4, 2 → 2, 3 → 4, 4 → 2, 5 → 2, 6 → 2. Capacité Q = 6. Donner le découpage optimal du tour géant (1, 2, 3, 4, 5, 6).',
+  L:['d','1','2','3','4','5','6'],depot:0,P:[[2,0],[0,1],[0,3],[1,4],[3,4],[4,3],[4,1]],W:4,H:4,
+  dem:{1:4,2:2,3:4,4:2,5:2,6:2},Q:6,order:[1,2,3,4,5,6],
+  concl:'Compare avec le découpage « glouton » qui remplit chaque camion au maximum dans l\'ordre : (1, 2), (3, 4), (5, 6) = 7,8 + 10,2 + 7,8 = 25,8. Beasley trouve 23,2 : couper tôt après le client 1 permet de mieux grouper la suite. C\'est l\'intérêt de tester toutes les coupures.'}
+];
+DATA.forEach(ds=>{
+  if(ds.kind==='matrix'){ds.d=(a,b)=>ds.M[a][b]}
+  else{ds.d=(a,b)=>{const dx=ds.P[a][0]-ds.P[b][0],dy=ds.P[a][1]-ds.P[b][1];return r1(Math.sqrt(dx*dx+dy*dy))}}
+});
+const COLORS=['var(--r1)','var(--r2)','var(--r3)','var(--r4)','var(--accent)'];
+
+function run(ds){
+  const n=ds.order.length,D=ds.depot,nm=i=>ds.L[i],d=ds.d;
+  const cap=ds.Q!==undefined;
+  const steps=[];const arcs=[];const V=[0];const pred=[null];
+  const snap=x=>Object.assign({arcs:arcs.map(a=>({...a})),V:V.slice(),pred:pred.slice()},x);
+  steps.push(snap({phase:'intro',text:`Le tour géant est en pointillés${ds.kind==='matrix'?' (on n\'a pas de carte : la matrice est en dessous)':''}. Beasley ne change <b>jamais</b> l'ordre des clients : il décide seulement où rentrer au dépôt.`,trip:null}));
+  steps.push(snap({phase:'num',text:`<b>Étape 1, numéroter.</b> ${ds.order.map((c,k)=>`${nm(c)} = ${k+1}`).join(', ')}. On crée les sommets 0 à ${n} du graphe auxiliaire. Le sommet j veut dire « les ${'j'} premiers clients sont servis ».`,trip:null}));
+  for(let i=1;i<=n;i++){
+    let load=0,cost=0,parts=[];
+    for(let j=i;j<=n;j++){
+      const c=ds.order[j-1];
+      if(cap)load+=ds.dem[c];
+      const seq=ds.order.slice(i-1,j);
+      // full cost, written out
+      const pts=[D,...seq,D];parts=[];cost=0;for(let k=0;k<pts.length-1;k++){const x=d(pts[k],pts[k+1]);parts.push(x);cost=r1(cost+x)}
+      const tripTxt=pts.map(nm).join(' → ');
+      const ok=cap?load<=ds.Q:cost<=ds.Lmax+1e-9;
+      const crit=cap?`charge ${load} ${ok?'≤':'>'} ${ds.Q}`:`longueur ${fmt(cost)} ${ok?'≤':'>'} ${ds.Lmax}`;
+      if(ok){
+        arcs.push({from:i-1,to:j,seq,cost,load,parts});
+        steps.push(snap({phase:'arc',cur:arcs.length-1,text:`<b>Arc ${i-1} → ${j}</b> : clients ${seq.map(nm).join(', ')}, ${crit}. Tournée ${tripTxt} = ${parts.map(fmt).join(' + ')} = <b>${fmt(cost)}</b>.`,trip:{seq,ok:true}}));
+      }else{
+        steps.push(snap({phase:'arc',bad:{from:i-1,to:j},text:`Arc ${i-1} → ${j} (clients ${seq.map(nm).join(', ')}) : <b>impossible</b>, ${crit}. Les suites plus longues qui partent de ${nm(ds.order[i-1])} le sont aussi : on passe au client suivant.`,trip:{seq,ok:false}}));
+        break;
+      }
+    }
+  }
+  steps.push(snap({phase:'arcsdone',text:`Tous les arcs sont listés (${arcs.length}). <b>Étape 3</b> : plus court chemin de 0 à ${n}. Les arcs vont toujours vers la droite (pas de circuit), donc on calcule V(1), V(2), … dans l'ordre, sans Dijkstra. V(0) = 0.`,trip:null}));
+  for(let j=1;j<=n;j++){
+    const inc=arcs.filter(a=>a.to===j);let best=null;
+    inc.forEach(a=>{const val=r1(V[a.from]+a.cost);a.val=val;if(!best||val<best.val-1e-9)best=a});
+    V[j]=best.val;pred[j]=best.from;
+    const calc=inc.map(a=>`V(${a.from}) + ${fmt(a.cost)} = ${fmt(a.val)}`).join(' ; ');
+    steps.push(snap({phase:'v',j,inc:inc.map(a=>arcs.indexOf(a)),best:arcs.indexOf(best),text:`<b>V(${j})</b> : arcs qui arrivent en ${j} → ${calc}. Minimum <b>V(${j}) = ${fmt(V[j])}</b>, prédécesseur ${best.from}.`,trip:{seq:best.seq,ok:true}}));
+  }
+  const path=[];let j=n;while(j>0){const a=arcs.find(x=>x.from===pred[j]&&x.to===j);path.unshift(arcs.indexOf(a));j=pred[j]}
+  const trips=path.map(k=>arcs[k]);
+  steps.push(snap({phase:'back',path,text:`<b>Étape 4, remonter</b> depuis ${n} : ${[n,...(()=>{const r=[];let x=n;while(x>0){x=pred[x];r.push(x)}return r})()].join(' ← ')}. Chaque arc du chemin est une tournée :<br>${trips.map((a,k)=>`Tournée ${k+1} : ${[D,...a.seq,D].map(nm).join(' → ')}, coût ${fmt(a.cost)}${cap?`, charge ${a.load}`:''}`).join('<br>')}<br>Total <b>${fmt(V[n])}</b> avec <b>${trips.length}</b> véhicules.`,trips}));
+  steps.push(snap({phase:'end',path,text:`<b>Conclusion.</b> ${ds.concl}`,trips}));
+  return steps;
+}
+
+const $=id=>document.getElementById(id);const NS='http://www.w3.org/2000/svg';
+function el(t,a,p,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!==undefined)e.textContent=txt;p.appendChild(e);return e}
+let DS=null,S=null,k=0;
+
+function drawAux(st){
+  const svg=$('aux');svg.innerHTML='';const n=DS.order.length;
+  const W=700,H=250,base=170,x0=50,gap=(W-2*x0)/n;const X=i=>x0+i*gap;
+  if(st.phase==='intro'){el('text',{x:W/2,y:H/2,'text-anchor':'middle',fill:'var(--muted)','font-size':14},svg,'Le graphe apparaît à l\'étape de numérotation.');return}
+  const draw=(a,style)=>{const x1=X(a.from),x2=X(a.to),span=a.to-a.from;const h=Math.min(150,22+span*34);const mx=(x1+x2)/2;
+    el('path',{d:`M${x1},${base-12} Q${mx},${base-12-h*2} ${x2},${base-12}`,fill:'none',stroke:style.c,'stroke-width':style.w,'stroke-dasharray':style.dash||'',opacity:style.o||1},svg);
+    const ty=base-12-h+2;
+    el('rect',{x:mx-17,y:ty-11,width:34,height:17,rx:4,fill:'var(--paper)',stroke:style.c,'stroke-width':1,opacity:style.o||1},svg);
+    el('text',{x:mx,y:ty+2,'text-anchor':'middle','font-size':11,'font-family':'JetBrains Mono, monospace',fill:style.c==='var(--grid-strong)'?'var(--muted)':style.c,'font-weight':600,opacity:style.o||1},svg,style.label!==undefined?style.label:fmt(a.cost))};
+  const inc=new Set(st.inc||[]),path=new Set(st.path||[]);
+  st.arcs.forEach((a,i)=>{let s={c:'var(--grid-strong)',w:1.5};
+    if(st.phase==='arc'&&i===st.cur)s={c:'var(--accent)',w:3};
+    if(st.phase==='v'){if(i===st.best)s={c:'var(--ok)',w:3};else if(inc.has(i))s={c:'var(--r4)',w:2.2}}
+    if(st.phase==='back'||st.phase==='end'){if(path.has(i))s={c:'var(--accent)',w:3.5};else s={c:'var(--grid-strong)',w:1.2,o:.5}}
+    draw(a,s)});
+  if(st.bad)draw({from:st.bad.from,to:st.bad.to,cost:0},{c:'var(--no)',w:2,dash:'6 5',label:'✕'});
+  for(let i=0;i<=n;i++){
+    const hl=(st.phase==='v'&&i===st.j);
+    el('circle',{cx:X(i),cy:base,r:13,fill:hl?'var(--ok)':'var(--paper)',stroke:hl?'var(--ok)':'var(--ink)','stroke-width':1.5},svg);
+    el('text',{x:X(i),y:base+4.5,'text-anchor':'middle','font-size':13,'font-weight':700,'font-family':'Space Grotesk, sans-serif',fill:hl?'var(--paper)':'var(--ink)'},svg,String(i));
+    if(i>0)el('text',{x:X(i),y:base+32,'text-anchor':'middle','font-size':11,fill:'var(--muted)'},svg,DS.L[DS.order[i-1]]);
+    if(st.V[i]!==undefined&&(st.phase==='v'||st.phase==='back'||st.phase==='end'||(st.phase==='arcsdone'&&i===0)))
+      el('text',{x:X(i),y:base+50,'text-anchor':'middle','font-size':12,'font-family':'JetBrains Mono, monospace','font-weight':600,fill:'var(--accent)'},svg,'V='+fmt(st.V[i]));
+  }
+}
+
+function tripsOf(st){
+  if(st.trips)return st.trips.map((a,i)=>({seq:a.seq,c:COLORS[i%COLORS.length],ok:true,w:3}));
+  if(st.trip)return [{seq:st.trip.seq,c:st.trip.ok?(st.phase==='v'?'var(--ok)':'var(--accent)'):'var(--no)',ok:st.trip.ok,w:3,dash:st.trip.ok?'':'6 5'}];
+  return [];
+}
+function drawView(st){
+  const v=$('view');const trips=tripsOf(st);
+  if(DS.kind==='matrix'){
+    $('vtitle').textContent='Matrice des distances';$('vbadge').textContent='cases en bleu = arcs de la tournée affichée';
+    const use=new Set();trips.forEach(t=>{const pts=[DS.depot,...t.seq,DS.depot];for(let q=0;q<pts.length-1;q++)use.add(pts[q]+','+pts[q+1])});
+    let h='<div class="tbl"><table class="mx"><thead><tr><th></th>'+DS.L.split('').map(c=>`<th>${c}</th>`).join('')+'<th>dem.</th></tr></thead><tbody>';
+    DS.M.forEach((r,i)=>{h+=`<tr><th>${DS.L[i]}</th>`+r.map((x,j)=>`<td class="${i===j?'dg':use.has(i+','+j)?'use':''}">${i===j?'–':x}</td>`).join('')+`<td class="dg">${DS.dem[i]||'dépôt'}</td></tr>`});
+    h+='</tbody></table></div>';
+    if(trips.length){h+='<p class="badge" style="text-align:center;margin:8px 0 0">'+trips.map(t=>[DS.depot,...t.seq,DS.depot].map(i=>DS.L[i]).join(' → ')).join(' &nbsp;|&nbsp; ')+'</p>'}
+    v.innerHTML=h;return}
+  $('vtitle').textContent='Carte';$('vbadge').textContent=st.phase==='intro'||st.phase==='num'?'pointillés : tour géant':'';
+  const s=70,pad=40,W=DS.W*s+2*pad,H=DS.H*s+2*pad;const X=p=>pad+p[0]*s,Y=p=>pad+(DS.H-p[1])*s;
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.maxWidth='440px';svg.style.margin='0 auto';
+  for(let i=0;i<=DS.W;i++)el('line',{x1:pad+i*s,y1:pad,x2:pad+i*s,y2:pad+DS.H*s,stroke:'var(--grid)','stroke-width':1},svg);
+  for(let i=0;i<=DS.H;i++)el('line',{x1:pad,y1:pad+i*s,x2:pad+DS.W*s,y2:pad+i*s,stroke:'var(--grid)','stroke-width':1},svg);
+  if(st.phase==='intro'||st.phase==='num'){const pts=[DS.depot,...DS.order,DS.depot].map(i=>DS.P[i]);
+    el('polyline',{points:pts.map(p=>X(p)+','+Y(p)).join(' '),fill:'none',stroke:'var(--muted)','stroke-width':2,'stroke-dasharray':'6 5'},svg)}
+  trips.forEach(t=>{const pts=[DS.depot,...t.seq,DS.depot].map(i=>DS.P[i]);
+    el('polyline',{points:pts.map(p=>X(p)+','+Y(p)).join(' '),fill:'none',stroke:t.c,'stroke-width':t.w,'stroke-dasharray':t.dash||'','stroke-linejoin':'round'},svg)});
+  DS.P.forEach((p,i)=>{const isD=i===DS.depot;const pos=DS.order.indexOf(i);
+    if(isD)el('rect',{x:X(p)-11,y:Y(p)-11,width:22,height:22,rx:4,fill:'var(--ink)'},svg);
+    else el('circle',{cx:X(p),cy:Y(p),r:11,fill:'var(--paper)',stroke:'var(--ink)','stroke-width':1.6},svg);
+    el('text',{x:X(p),y:Y(p)+4.5,'text-anchor':'middle','font-size':12,'font-weight':700,'font-family':'Space Grotesk, sans-serif',fill:isD?'var(--paper)':'var(--ink)'},svg,DS.L[i]);
+    const tag=[];if(!isD&&st.phase!=='intro'&&pos>=0)tag.push('#'+(pos+1));if(!isD&&DS.dem)tag.push('q='+DS.dem[i]);
+    if(tag.length)el('text',{x:X(p)+14,y:Y(p)-12,'font-size':11,'font-family':'JetBrains Mono, monospace',fill:'var(--muted)'},svg,tag.join(' '))});
+  v.innerHTML='';v.appendChild(svg);
+  if(trips.length&&st.phase!=='intro'){const p=document.createElement('p');p.className='badge';p.style.textAlign='center';p.style.margin='6px 0 0';
+    p.textContent=trips.map(t=>[DS.depot,...t.seq,DS.depot].map(i=>DS.L[i]).join(' → ')).join('  |  ');v.appendChild(p)}
+}
+function drawTables(st){
+  const cap=DS.Q!==undefined;let h='';
+  if(st.arcs.length){
+    h+='<p class="sub">Arcs du graphe auxiliaire</p><div class="tbl"><table><thead><tr><th>Arc</th><th>Clients</th>'+(cap?'<th>Charge</th>':'')+'<th>Coût</th></tr></thead><tbody>';
+    const path=new Set(st.path||[]);
+    st.arcs.forEach((a,i)=>{const cls=(st.phase==='arc'&&i===st.cur)||(st.phase==='v'&&i===st.best)?'cur':path.has(i)?'win':'';
+      h+=`<tr class="${cls}"><td>${a.from} → ${a.to}</td><td>${a.seq.map(c=>DS.L[c]).join(', ')}</td>${cap?`<td>${a.load}</td>`:''}<td>${fmt(a.cost)}</td></tr>`});
+    h+='</tbody></table></div>'}
+  if(['v','back','end'].includes(st.phase)){
+    h+='<p class="sub">Plus court chemin</p><div class="tbl"><table><thead><tr><th>j</th><th>V(j)</th><th>Préd.</th></tr></thead><tbody>';
+    st.V.forEach((x,j)=>{h+=`<tr class="${st.phase==='v'&&j===st.j?'cur':''}"><td>${j}</td><td>${fmt(x)}</td><td>${j?st.pred[j]:'–'}</td></tr>`});
+    h+='</tbody></table></div>'}
+  $('tables').innerHTML=h;
+}
+function show(){const st=S[k];drawAux(st);drawView(st);drawTables(st);$('stext').innerHTML=st.text;
+  $('count').textContent=`Étape ${k+1} / ${S.length}`;$('slider').max=S.length-1;$('slider').value=k;
+  $('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===S.length-1}
+function pick(i){DS=DATA[i];S=run(DS);k=0;$('dname').textContent=DS.name;$('denonce').textContent=DS.enonce;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));try{localStorage.setItem('beasley-tab',String(i))}catch(e){}show()}
+DATA.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=d.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<S.length-1){k++;show()}};$('prev').onclick=()=>{if(k>0){k--;show()}};$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')$('next').click();else if(e.key==='ArrowLeft')$('prev').click()});
+let s0=0;try{const x=+localStorage.getItem('beasley-tab');if(x>=0&&x<DATA.length)s0=x}catch(e){}
+pick(s0);
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier Christofides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board,.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;min-width:0}
+.board{padding:10px}
+.notes{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:4px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule ol{margin:4px 0 0;padding-left:20px}
+.step{font-size:.95rem}
+.enonce{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em}
+tr.cur td{background:var(--accent-soft)}
+tr.win td{color:var(--ok);font-weight:600}
+tr.ref td{color:var(--no)}
+.mx{width:auto;border-collapse:separate;border-spacing:3px;font-family:var(--font-mono);font-size:.82rem;margin:0 auto}
+.mx th{text-transform:none;letter-spacing:0;border:0;padding:2px 6px;text-align:center;font-weight:600}
+.mx td{min-width:2.5em;height:2em;text-align:center;border:1px solid var(--line);border-radius:6px;padding:0 3px;background:var(--paper)}
+.mx td.dg{color:var(--muted)}
+.mx td.use{background:var(--accent);color:var(--paper);border-color:var(--accent);font-weight:600}
+.sub{font-family:var(--font-display);font-size:.95rem;margin:4px 0 0}
+.seq{font-family:var(--font-mono);font-size:.95rem;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.seq span{padding:2px 7px;border-radius:6px;border:1px solid var(--line)}
+.seq span.skip{color:var(--no);text-decoration:line-through;border-color:var(--no)}
+.seq span.keep{background:var(--accent-soft)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:var(--muted);margin:6px 4px 0}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+</style>
+</head>
+<body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+
+<div class="wrap">
+  <header>
+    <h1>Atelier Christofides : un tour garanti à 1,5 × l'optimum</h1>
+    <p>Arbre couvrant minimal, sommets impairs, couplage minimal, cycle eulérien, raccourcis. Choisis un exercice puis avance avec « Étape suivante » ou les flèches du clavier. Fais l'étape sur ta feuille avant de cliquer.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3 id="gtitle">Graphe</h3><span class="badge" id="gbadge"></span></div>
+      <svg id="g" viewBox="0 0 520 440" role="img" aria-label="Graphe de l'exercice"></svg>
+      <div class="legend">
+        <span><i style="border-color:var(--ink)"></i>arbre</span>
+        <span><i style="border-color:var(--r3);border-top-style:dashed"></i>couplage</span>
+        <span><i style="border-color:var(--r4)"></i>cycle eulérien</span>
+        <span><i style="border-color:var(--accent)"></i>tour final</span>
+        <span><i style="border-color:var(--no);border-top-style:dotted"></i>refusée</span>
+      </div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+      <div id="matrix" style="margin-top:12px"></div>
+    </div>
+    <div class="notes">
+      <h2 id="dname"></h2>
+      <div class="enonce" id="denonce"></div>
+      <div class="step" id="stext"></div>
+      <div id="extra"></div>
+      <details class="rule"><summary><b>La méthode</b></summary><ol>
+        <li>Arbre couvrant minimal (Kruskal : arêtes par coût croissant, refuser celles qui ferment un cycle).</li>
+        <li>Repérer les sommets de degré impair dans l'arbre (toujours en nombre pair).</li>
+        <li>Couplage parfait de coût minimal entre ces seuls sommets impairs.</li>
+        <li>Arbre + couplage : tous les degrés sont pairs, il existe un cycle eulérien.</li>
+        <li>Parcourir le cycle eulérien depuis le dépôt.</li>
+        <li>Raccourcis : sauter les sommets déjà visités. On obtient un cycle hamiltonien.</li>
+      </ol><p style="margin:6px 0 0">Garantie : C(T) ≤ 1,5 × OPT si l'inégalité triangulaire est respectée (arbre ≤ OPT, couplage ≤ OPT/2, raccourcis sans allongement).</p></details>
+    </div>
+  </div>
+</div>
+<script>
+const r1=x=>Math.round(x*10)/10;
+const fmt=x=>(Number.isInteger(x)?String(x):x.toFixed(1)).replace('.',',');
+const hex=n=>[...Array(n)].map((_,i)=>{const a=-Math.PI/2+i*2*Math.PI/n;return [260+170*Math.cos(a),220+170*Math.sin(a)]});
+const DATA=[
+ {name:'Annale A14 / A15',kind:'matrix',
+  enonce:'A15, exercice IV, question 1 (même question en A14). Voyageur de commerce, A est le dépôt (point de départ et d\'arrivée). « Donner une solution approchée par l\'heuristique de Christofides. » La matrice est symétrique, les sommets sont placés en cercle pour le dessin (pas à l\'échelle).',
+  L:['A','B','C','D','E','F'],M:[[0,1,4,4,4,5],[1,0,1,2,4,5],[4,1,0,3,4,4],[4,2,3,0,2,4],[4,4,4,2,0,2],[5,5,4,4,2,0]],ring:[0,1,2,5,4,3]},
+ {name:'Grille d\'A07',kind:'grid',
+  enonce:'Les 7 points de l\'annale A07 (où on demandait Shamos, qui donnait 9,8). Grille unitaire, distances euclidiennes (√2 = 1,4 ; √5 = 2,2 ; √8 = 2,8 ; √10 = 3,2). Dépôt d. Applique Christofides et compare au résultat de Shamos.',
+  L:['d','1','2','3','4','5','6'],P:[[0,3],[2,4],[3,3],[0,2],[1,2],[3,2],[1,1]],W:4,H:4},
+ {name:'Entraînement',kind:'grid',
+  enonce:'Exercice inventé dans le style des annales. Grille unitaire, distances euclidiennes arrondies à 0,1 (√2 = 1,4 ; √5 = 2,2 ; √8 = 2,8 ; √10 = 3,2 ; √13 = 3,6 ; √17 = 4,1 ; √20 = 4,5 ; √25 = 5). Dépôt d en (4, 4). Donner une solution approchée par l\'heuristique de Christofides. Ici, 6 sommets impairs : il y a 15 couplages à comparer.',
+  L:['d','1','2','3','4','5','6'],P:[[4,4],[1,0],[2,3],[4,1],[0,0],[1,3],[0,3]],W:4,H:4}
+];
+DATA.forEach(ds=>{const n=ds.L.length;
+  if(ds.kind==='matrix'){ds.d=(a,b)=>ds.M[a][b];const h=hex(n);ds.pos=ds.ring.map((_,i)=>h[ds.ring.indexOf(i)])}
+  else{ds.d=(a,b)=>{const dx=ds.P[a][0]-ds.P[b][0],dy=ds.P[a][1]-ds.P[b][1];return r1(Math.sqrt(dx*dx+dy*dy))};
+    const s=90,pad=70;ds.pos=ds.P.map(p=>[pad+p[0]*s,pad+(ds.H-p[1])*s])}});
+
+function perms(a){if(a.length<=1)return [a];const out=[];a.forEach((x,i)=>perms(a.slice(0,i).concat(a.slice(i+1))).forEach(p=>out.push([x,...p])));return out}
+function matchings(S){if(!S.length)return [[]];const [a,...rest]=S;const out=[];rest.forEach((b,i)=>{const r=rest.slice(0,i).concat(rest.slice(i+1));matchings(r).forEach(m=>out.push([[a,b],...m]))});return out}
+
+function run(ds){
+  const n=ds.L.length,nm=i=>ds.L[i],d=ds.d,E=(a,b)=>nm(a)+nm(b);
+  const steps=[];let tree=[],refused=[],match=[],euler=[],tour=null,odd=[];
+  const snap=x=>Object.assign({tree:tree.slice(),refused:refused.slice(),match:match.slice(),euler:euler.slice(),tour,odd:odd.slice()},x);
+  steps.push(snap({text:`Graphe complet à ${n} sommets. On ne cherche pas le tour optimal : on construit une <b>solution approchée</b> en 6 étapes. Première étape, l'<b>arbre couvrant minimal</b> par Kruskal.`}));
+  // Kruskal
+  const edges=[];for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)edges.push([i,j,d(i,j)]);
+  edges.sort((a,b)=>a[2]-b[2]||a[0]-b[0]||a[1]-b[1]);
+  const comp=[...Array(n).keys()];const find=x=>comp[x]===x?x:(comp[x]=find(comp[x]));
+  const ktab=[];
+  for(const [a,b,w] of edges){if(tree.length===n-1)break;
+    if(find(a)===find(b)){refused.push([a,b]);ktab.push({e:E(a,b),w,ok:false});
+      steps.push(snap({cur:[a,b],ktab:ktab.slice(),text:`Arête <b>${E(a,b)}</b> (${fmt(w)}) : <b>refusée</b>, ${nm(a)} et ${nm(b)} sont déjà reliés par l'arbre, elle fermerait un cycle.`}))}
+    else{comp[find(a)]=find(b);tree.push([a,b]);ktab.push({e:E(a,b),w,ok:true});
+      steps.push(snap({cur:[a,b],ktab:ktab.slice(),text:`Arête <b>${E(a,b)}</b> (${fmt(w)}) : prise. ${tree.length} arête${tree.length>1?'s':''} sur ${n-1}.${tree.length===n-1?' L\'arbre est complet.':''}`}))}}
+  const acm=r1(tree.reduce((s,[a,b])=>s+d(a,b),0));
+  steps.push(snap({ktab:ktab.slice(),text:`<b>Arbre couvrant minimal</b> : ${tree.map(([a,b])=>`${E(a,b)} (${fmt(d(a,b))})`).join(', ')}. Coût = <b>${fmt(acm)}</b>. C'est déjà une borne inférieure du tour optimal.`}));
+  // degrees
+  const deg=Array(n).fill(0);tree.forEach(([a,b])=>{deg[a]++;deg[b]++});odd=[...Array(n).keys()].filter(i=>deg[i]%2);
+  steps.push(snap({deg:deg.slice(),text:`<b>Degrés dans l'arbre</b> : ${deg.map((x,i)=>`${nm(i)} = ${x}`).join(', ')}. Sommets impairs (en rouge) : <b>${odd.map(nm).join(', ')}</b>. Il y en a ${odd.length}, toujours un nombre pair. Il faut les « réparer » pour pouvoir tout parcourir en un seul cycle.`}));
+  // matching
+  const ms=matchings(odd).map(m=>({m,c:r1(m.reduce((s,[a,b])=>s+d(a,b),0))})).sort((x,y)=>x.c-y.c);
+  const best=ms[0];match=best.m;
+  steps.push(snap({deg:deg.slice(),mtab:ms,text:`<b>Couplage parfait de coût minimal</b> entre ${odd.map(nm).join(', ')} seulement. On énumère les ${ms.length} façons de les mettre par paires. Le moins cher : <b>${best.m.map(([a,b])=>E(a,b)).join(' + ')} = ${fmt(best.c)}</b> (pointillés violets).`}));
+  // union
+  const multi=tree.concat(match);const deg2=Array(n).fill(0);multi.forEach(([a,b])=>{deg2[a]++;deg2[b]++});
+  const dbl=match.filter(([a,b])=>tree.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a)));
+  steps.push(snap({deg:deg2,text:`<b>Arbre + couplage</b>${dbl.length?` (${dbl.map(([a,b])=>E(a,b)).join(', ')} apparaît deux fois)`:''} : degrés ${deg2.map((x,i)=>`${nm(i)} = ${x}`).join(', ')}. Tous pairs : il existe un cycle eulérien. Coût = ${fmt(acm)} + ${fmt(best.c)} = <b>${fmt(r1(acm+best.c))}</b>.`}));
+  // Fleury from 0
+  let rem=multi.map(e=>e.slice());const reach=(s,ed)=>{const seen=new Set([s]),st=[s];while(st.length){const x=st.pop();ed.forEach(([a,b])=>{const y=a===x?b:b===x?a:null;if(y!==null&&!seen.has(y)){seen.add(y);st.push(y)}})}return seen.size};
+  let cur=0;const walk=[0];
+  while(rem.length){const cand=rem.map((e,i)=>({e,i,o:e[0]===cur?e[1]:e[1]===cur?e[0]:null})).filter(x=>x.o!==null).sort((a,b)=>a.o-b.o);
+    const nOpt=new Set(cand.map(c=>c.o)).size;let pickc=cand[0];if(cand.length>1){for(const c of cand){const r2=rem.filter((_,i)=>i!==c.i);const before=reach(cur,rem),after=reach(c.o,r2);
+      const left=r2.length?new Set(r2.flat()).size:0;if(!r2.length||after>=left){pickc=c;break}}}
+    rem.splice(pickc.i,1);euler.push([cur,pickc.o]);cur=pickc.o;walk.push(cur);
+    steps.push(snap({deg:deg2,walk:walk.slice(),text:`<b>Cycle eulérien</b>, arête ${euler.length} / ${multi.length} : ${nm(euler[euler.length-1][0])} → ${nm(cur)}. ${nOpt>1&&pickc.o!==cand[0].o?`On ne va pas vers ${nm(cand[0].o)} : prendre cette arête maintenant isolerait des arêtes pas encore parcourues (règle de Fleury : ne pas couper un pont).`:nOpt>1?'Plusieurs choix possibles : on prend le premier dans l\'ordre des noms (A, B, … ou 1, 2, …).':'Un seul choix possible.'}<br>Parcours : ${walk.map(nm).join(' → ')}`}))}
+  // shortcuts
+  const seen=new Set();const seq=walk.map((x,i)=>{const last=i===walk.length-1;const keep=last||!seen.has(x);seen.add(x);return {x,keep}});
+  tour=seq.filter(s=>s.keep).map(s=>s.x);
+  const tc=r1(tour.slice(0,-1).reduce((s,x,i)=>s+d(x,tour[i+1]),0));
+  const ec=r1(acm+best.c);
+  const skips=[];for(let i=1;i<seq.length-1;i++)if(!seq[i].keep){let p=i-1;while(!seq[p].keep)p--;let q=i+1;while(!seq[q].keep)q++;skips.push({a:seq[p].x,b:seq[q].x,via:seq.slice(p+1,q).map(s=>s.x)});i=q-1}
+  const skipTxt=skips.map(s=>{const det=r1([s.a,...s.via,s.b].slice(0,-1).reduce((acc,x,i,arr)=>acc+d(x,[s.a,...s.via,s.b][i+1]),0));const di=d(s.a,s.b);
+    return `${[s.a,...s.via,s.b].map(nm).join(' → ')} (${fmt(det)}) devient ${nm(s.a)} → ${nm(s.b)} (${fmt(di)})${di>det+1e-9?', <b>plus long</b> : l\'inégalité triangulaire n\'est pas respectée ici':di<det-1e-9?', on gagne '+fmt(r1(det-di)):''}`}).join(' ; ');
+  const parts=tour.slice(0,-1).map((x,i)=>fmt(d(x,tour[i+1])));
+  steps.push(snap({deg:deg2,walk:walk.slice(),seq,tour:null,showseq:true,text:`<b>Raccourcis</b> : on relit le cycle et on saute chaque sommet déjà visité (barré). ${skipTxt?skipTxt+'.':''}`}));
+  tour=tour.slice();
+  steps.push(snap({seq,showseq:true,text:`<b>Tour obtenu</b> : ${tour.map(nm).join(' → ')} = ${parts.join(' + ')} = <b>${fmt(tc)}</b>.`}));
+  // conclusion
+  let bestT=null,bc=Infinity;perms([...Array(n).keys()].slice(1)).forEach(p=>{const t=[0,...p,0];const c=r1(t.slice(0,-1).reduce((s,x,i)=>s+d(x,t[i+1]),0));if(c<bc-1e-9){bc=c;bestT=t}});
+  let viol=null;for(let i=0;i<n&&!viol;i++)for(let j=0;j<n&&!viol;j++)for(let k=0;k<n&&!viol;k++)if(i!==j&&j!==k&&i!==k&&d(i,k)>r1(d(i,j)+d(j,k))+1e-9)viol=[i,j,k];
+  steps.push(snap({seq,showseq:true,text:`<b>Conclusion.</b> Christofides donne <b>${fmt(tc)}</b>. L'optimum (énumération des ${n-1}! tours) vaut <b>${fmt(bc)}</b>${bc===tc?' : ici Christofides tombe sur un tour optimal':`, atteint par ${bestT.map(nm).join(' → ')}`}. Rapport ${fmt(tc)} / ${fmt(bc)} = ${(tc/bc).toFixed(2).replace('.',',')} ≤ 1,5.<br>${viol?`Attention : cette matrice <b>ne respecte pas</b> l'inégalité triangulaire (${E(viol[0],viol[2])} = ${fmt(d(viol[0],viol[2]))} > ${E(viol[0],viol[1])} + ${E(viol[1],viol[2])} = ${fmt(r1(d(viol[0],viol[1])+d(viol[1],viol[2])))}). La méthode s'applique, mais la garantie 1,5 n'est pas prouvée. Dis-le sur la copie.`:'Les distances sont euclidiennes, donc l\'inégalité triangulaire est respectée et la garantie 1,5 s\'applique.'}${ds.kind==='grid'&&ds.name.includes('A07')?' Shamos donnait 9,8 sur ces points.':''} Le résultat dépend du cycle eulérien choisi : un autre ordre de parcours peut donner un autre tour. Indique toujours le cycle que tu as pris.`}));
+  return steps;
+}
+
+const $=id=>document.getElementById(id);const NS='http://www.w3.org/2000/svg';
+function el(t,a,p,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!==undefined)e.textContent=txt;p.appendChild(e);return e}
+let DS=null,S=null,k=0;
+function drawGraph(st){
+  const svg=$('g');svg.innerHTML='';const n=DS.L.length;const P=DS.pos;
+  if(DS.kind==='grid'){const s=90,pad=70;for(let i=0;i<=DS.W;i++)el('line',{x1:pad+i*s,y1:pad,x2:pad+i*s,y2:pad+DS.H*s,stroke:'var(--grid)'},svg);
+    for(let i=0;i<=DS.H;i++)el('line',{x1:pad,y1:pad+i*s,x2:pad+DS.W*s,y2:pad+i*s,stroke:'var(--grid)'},svg);svg.setAttribute('viewBox',`0 0 ${2*pad+DS.W*s} ${2*pad+DS.H*s}`)}
+  else svg.setAttribute('viewBox','0 0 520 440');
+  if(!st.tour&&!st.tree.length)for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)el('line',{x1:P[i][0],y1:P[i][1],x2:P[j][0],y2:P[j][1],stroke:'var(--grid-strong)','stroke-width':1,opacity:.6},svg);
+  const lbl=(a,b,c,off=0)=>{const mx=(P[a][0]+P[b][0])/2,my=(P[a][1]+P[b][1])/2;const dx=P[b][1]-P[a][1],dy=P[a][0]-P[b][0];const L=Math.hypot(dx,dy)||1;
+    const x=mx+dx/L*off,y=my+dy/L*off;el('rect',{x:x-14,y:y-9,width:28,height:17,rx:4,fill:'var(--paper)',stroke:c,'stroke-width':1},svg);
+    el('text',{x,y:y+4,'text-anchor':'middle','font-size':11,'font-family':'JetBrains Mono, monospace','font-weight':600,fill:c},svg,fmt(DS.d(a,b)))};
+  const line=(a,b,o,off=0)=>{let x1=P[a][0],y1=P[a][1],x2=P[b][0],y2=P[b][1];if(off){const dx=y2-y1,dy=x1-x2,L=Math.hypot(dx,dy);x1+=dx/L*off;x2+=dx/L*off;y1+=dy/L*off;y2+=dy/L*off}
+    el('line',Object.assign({x1,y1,x2,y2,'stroke-linecap':'round'},o),svg)};
+  if(st.tour){const t=st.tour;for(let i=0;i<t.length-1;i++){line(t[i],t[i+1],{stroke:'var(--accent)','stroke-width':4});lbl(t[i],t[i+1],'var(--accent)')}}
+  else{
+    const eul=st.euler.length&&st.walk;
+    st.refused.forEach(([a,b])=>{if(st.cur&&st.cur[0]===a&&st.cur[1]===b)return;if(!st.match.length)line(a,b,{stroke:'var(--no)','stroke-width':1.5,'stroke-dasharray':'2 5',opacity:.7})});
+    st.tree.forEach(([a,b])=>{line(a,b,{stroke:'var(--ink)','stroke-width':2.5});});
+    st.match.forEach(([a,b])=>{const dbl=st.tree.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));line(a,b,{stroke:'var(--r3)','stroke-width':2.5,'stroke-dasharray':'7 5'},dbl?7:0)});
+    if(eul){const cnt={};st.euler.forEach(([a,b],i)=>{const key=Math.min(a,b)+','+Math.max(a,b);cnt[key]=(cnt[key]||0)+1;const off=cnt[key]>1?-7:0;
+      line(a,b,{stroke:'var(--r4)','stroke-width':4,opacity:.9},off);
+      const mx=(P[a][0]+P[b][0])/2,my=(P[a][1]+P[b][1])/2;el('circle',{cx:mx,cy:my,r:10,fill:'var(--r4)'},svg);el('text',{x:mx,y:my+4,'text-anchor':'middle','font-size':11,'font-weight':700,fill:'var(--paper)'},svg,String(i+1))})}
+    if(st.cur){const [a,b]=st.cur;const ok=st.tree.some(([x,y])=>x===a&&y===b);line(a,b,{stroke:ok?'var(--ok)':'var(--no)','stroke-width':5,'stroke-dasharray':ok?'':'4 6'});lbl(a,b,ok?'var(--ok)':'var(--no)')}
+    if(!eul){st.tree.forEach(([a,b])=>{if(!(st.cur&&st.cur[0]===a&&st.cur[1]===b))lbl(a,b,'var(--ink)')});st.match.forEach(([a,b])=>{const dbl=st.tree.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));lbl(a,b,'var(--r3)',dbl?20:0)})}
+  }
+  const oddSet=new Set(st.odd);
+  for(let i=0;i<n;i++){const isOdd=st.deg&&oddSet.has(i)&&!st.euler.length&&!st.tour&&st.match.length===0;const isD=i===0;
+    const here=st.walk&&!st.showseq&&st.walk[st.walk.length-1]===i;
+    if(isD)el('rect',{x:P[i][0]-14,y:P[i][1]-14,width:28,height:28,rx:5,fill:here?'var(--r4)':'var(--ink)'},svg);
+    else el('circle',{cx:P[i][0],cy:P[i][1],r:14,fill:isOdd?'var(--no)':here?'var(--r4)':'var(--paper)',stroke:isOdd?'var(--no)':'var(--ink)','stroke-width':1.8},svg);
+    el('text',{x:P[i][0],y:P[i][1]+5,'text-anchor':'middle','font-size':14,'font-weight':700,'font-family':'Space Grotesk, sans-serif',fill:isD||isOdd||here?'var(--paper)':'var(--ink)'},svg,DS.L[i]);
+    if(st.deg&&!st.tour){el('text',{x:P[i][0]+16,y:P[i][1]-14,'font-size':11,'font-family':'JetBrains Mono, monospace',fill:st.deg[i]%2?'var(--no)':'var(--muted)','font-weight':600},svg,'deg '+st.deg[i])}}
+}
+function drawMatrix(st){
+  const use=new Set();if(st.cur)use.add(st.cur.join(','));
+  const n=DS.L.length;let h='<div class="tbl"><table class="mx"><thead><tr><th></th>'+DS.L.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  for(let i=0;i<n;i++){h+=`<tr><th>${DS.L[i]}</th>`;for(let j=0;j<n;j++){const key=Math.min(i,j)+','+Math.max(i,j);h+=`<td class="${i===j?'dg':use.has(key)?'use':''}">${i===j?'–':fmt(DS.d(i,j))}</td>`}h+='</tr>'}
+  $('matrix').innerHTML=h+'</tbody></table></div>';
+}
+function drawExtra(st){let h='';
+  if(st.ktab){h+='<p class="sub">Kruskal (arêtes par coût croissant)</p><div class="tbl"><table><thead><tr><th>Arête</th><th>Coût</th><th>Décision</th></tr></thead><tbody>'+
+    st.ktab.map((r,i)=>`<tr class="${i===st.ktab.length-1&&st.cur?'cur':r.ok?'':'ref'}"><td>${r.e}</td><td>${fmt(r.w)}</td><td>${r.ok?'prise':'refusée (cycle)'}</td></tr>`).join('')+'</tbody></table></div>'}
+  if(st.mtab){h+='<p class="sub">Couplages possibles</p><div class="tbl"><table><thead><tr><th>Couplage</th><th>Coût</th></tr></thead><tbody>'+
+    st.mtab.map((m,i)=>`<tr class="${i===0?'win':''}"><td>${m.m.map(([a,b])=>DS.L[a]+DS.L[b]).join(' + ')}</td><td>${fmt(m.c)}</td></tr>`).join('')+'</tbody></table></div>'}
+  if(st.showseq&&st.seq){h+='<p class="sub">Cycle eulérien → tour</p><div class="seq">'+st.seq.map((s,i)=>`<span class="${s.keep?'keep':'skip'}">${DS.L[s.x]}</span>${i<st.seq.length-1?'→':''}`).join('')+'</div>'}
+  $('extra').innerHTML=h}
+function show(){const st=S[k];drawGraph(st);drawMatrix(st);drawExtra(st);$('stext').innerHTML=st.text;
+  $('gbadge').textContent=DS.kind==='grid'?'grille unitaire, dépôt = carré noir':'dessin en cercle, pas à l\'échelle';
+  $('count').textContent=`Étape ${k+1} / ${S.length}`;$('slider').max=S.length-1;$('slider').value=k;
+  $('prev').disabled=$('first').disabled=k===0;$('next').disabled=k===S.length-1}
+function pick(i){DS=DATA[i];S=run(DS);k=0;$('dname').textContent=DS.name;$('denonce').textContent=DS.enonce;
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===i));try{localStorage.setItem('christo-tab',String(i))}catch(e){}show()}
+DATA.forEach((d,i)=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=d.name;b.onclick=()=>pick(i);$('tabs').appendChild(b)});
+$('next').onclick=()=>{if(k<S.length-1){k++;show()}};$('prev').onclick=()=>{if(k>0){k--;show()}};$('first').onclick=()=>{k=0;show()};
+$('slider').oninput=e=>{k=+e.target.value;show()};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')$('next').click();else if(e.key==='ArrowLeft')$('prev').click()});
+let s0=0;try{const x=+localStorage.getItem('christo-tab');if(x>=0&&x<DATA.length)s0=x}catch(e){}
+pick(s0);
+</script>
+</body>
+</html>
