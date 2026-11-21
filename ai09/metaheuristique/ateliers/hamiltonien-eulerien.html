@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Hamiltonien et eulérien</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Mise en page : graphe à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#e07a10;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 4px 0;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.step{font-size:.95rem}
+.step p{margin:.4em 0}
+.step b,.step strong{font-weight:600}
+.step code,.mono{font-family:var(--font-mono);font-size:.86em}
+.step .ok{color:var(--ok);font-weight:600}
+.step .no{color:var(--no);font-weight:600}
+.step .box{background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin:.6em 0}
+.step ul,.step ol{margin:.3em 0;padding-left:1.3em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule summary{cursor:pointer}
+.rule ol,.rule ul{margin:4px 0 0;padding-left:20px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+<div class="wrap">
+  <header>
+    <h1>Atelier : cycles hamiltoniens, cycles eulériens, et A11 Ex IV</h1>
+    <p>D'abord la différence entre hamiltonien et eulérien, puis l'exercice IV de l'annale A11 : relation entre l'arbre couvrant minimum et le cycle hamiltonien, et ratio du plus proche voisin.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3 id="gtitle">Graphe</h3><span class="badge" id="gbadge"></span></div>
+      <svg id="g" viewBox="0 0 100 100" role="img" aria-label="Graphe de l'exercice"></svg>
+      <div class="legend" id="legend"></div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="tname"></h2>
+      <div class="badge" id="tsrc"></div>
+      <div class="step" id="stext"></div>
+      <div class="tbl" id="stbl"></div>
+      <details class="rule" id="trule"><summary><b>À retenir pour la copie</b></summary><div id="truletxt"></div></details>
+    </div>
+  </div>
+</div>
+<script>
+window.ATELIER={"key": "ham-tab", "graphs": {"maison": {"nodes": {"A": [0, 0], "B": [2, 0], "C": [2, 2], "D": [0, 2], "E": [1, 3.3]}, "edges": [["A", "B", null], ["B", "C", null], ["C", "D", null], ["D", "A", null], ["D", "E", null], ["E", "C", null]]}, "papillon": {"nodes": {"A": [0, 0], "B": [0, 2], "C": [2, 1], "D": [4, 0], "E": [4, 2]}, "edges": [["A", "B", null], ["B", "C", null], ["C", "A", null], ["C", "D", null], ["D", "E", null], ["E", "C", null]]}, "k5": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", null], ["A", "C", null], ["A", "D", null], ["A", "E", null], ["B", "C", null], ["B", "D", null], ["B", "E", null], ["C", "D", null], ["C", "E", null], ["D", "E", null]]}}, "tabs": [{"tab": "Hamiltonien ou eulérien ?", "name": "Hamiltonien ou eulérien ?", "src": "Notions de base, utiles pour A11, A12, A21 et Christofides", "g": "maison", "steps": [{"t": "<p>Deux notions qui se ressemblent mais qui comptent des choses différentes :</p><ul><li><b>Eulérien</b> : on emprunte <b>chaque arête</b> exactement une fois (tu connais : postier chinois).</li><li><b>Hamiltonien</b> : on visite <b>chaque sommet</b> exactement une fois, et pour un cycle on revient au départ.</li></ul><p>Le TSP cherche un <b>cycle hamiltonien</b> de coût minimal : le voyageur visite chaque ville une fois, peu importe les routes qu'il n'emprunte pas.</p>", "tbl": "<table><thead><tr><th></th><th>Eulérien</th><th>Hamiltonien</th></tr></thead><tbody><tr><td>Passe une fois par…</td><td>chaque <b>arête</b></td><td>chaque <b>sommet</b></td></tr><tr><td>Cycle / chaîne</td><td>revient au départ / finit ailleurs</td><td>revient au départ / finit ailleurs</td></tr><tr><td>Comment savoir ?</td><td>degrés (théorème d'Euler) : facile</td><td>aucun critère simple : NP-complet</td></tr><tr><td>Problème associé</td><td>postier chinois</td><td>voyageur de commerce (TSP)</td></tr></tbody></table>", "g": "maison", "gt": "Graphe « maison »"}, {"t": "<p><b>Côté eulérien.</b> Degrés : A 2, B 2, <b>C 3</b>, <b>D 3</b>, E 2. Deux sommets impairs (entourés), donc pas de cycle eulérien, mais une <b>chaîne eulérienne</b> de C à D (théorème d'Euler).</p>", "g": "maison", "gt": "Graphe « maison »", "n": {"C": "odd", "D": "odd"}}, {"t": "<p>Chaîne eulérienne : <b>C → B → A → D → C → E → D</b>. Les 6 arêtes sont prises une fois chacune (numéros = ordre de passage). On passe deux fois par C et par D : c'est permis, ce sont les arêtes qui comptent.</p>", "g": "maison", "gt": "Graphe « maison »", "n": {"C": "start", "D": "odd"}, "e": {"BC": "on", "AB": "on", "AD": "on", "CD": "on", "CE": "on", "DE": "on"}, "lab": {"BC": "1", "AB": "2", "AD": "3", "CD": "4", "CE": "5", "DE": "6"}}, {"t": "<p><b>Côté hamiltonien.</b> Cycle <b>A → B → C → E → D → A</b> : chaque sommet une fois, retour en A. L'arête C–D n'est pas utilisée, et ce n'est pas grave : un cycle hamiltonien ne prend que n arêtes.</p><p>La maison est donc <b>hamiltonienne mais pas eulérienne</b>.</p>", "g": "maison", "gt": "Graphe « maison »", "n": {"A": "start"}, "e": {"AB": "on", "BC": "on", "CE": "on", "DE": "on", "AD": "on"}}, {"t": "<p>Autre graphe : le « nœud papillon », deux triangles qui partagent C. Degrés : A 2, B 2, C 4, D 2, E 2, tous pairs. Il a un <b>cycle eulérien</b> : A → B → C → D → E → C → A.</p>", "g": "papillon", "gt": "Graphe « papillon »", "n": {"A": "start"}, "e": {"AB": "on", "BC": "on", "CD": "on", "DE": "on", "CE": "on", "AC": "on"}, "lab": {"AB": "1", "BC": "2", "CD": "3", "DE": "4", "CE": "5", "AC": "6"}}, {"t": "<p>Mais <b>aucun cycle hamiltonien</b> : pour aller de {A, B} vers {D, E} il faut passer par C, et pour revenir aussi. On visiterait C deux fois.</p><p>Le papillon est <b>eulérien mais pas hamiltonien</b>. Les deux notions sont indépendantes.</p>", "g": "papillon", "gt": "Graphe « papillon »", "n": {"C": "dup"}}, {"t": "<p><b>Dans le TSP, le graphe est complet</b> : une arête entre chaque paire de villes. Des cycles hamiltoniens, il y en a toujours, et beaucoup : <b>(n − 1)! / 2</b> pour n villes avec des distances symétriques. Pour 5 villes : 4! / 2 = 12.</p><p>La difficulté n'est pas d'en trouver un, c'est de trouver <b>le moins cher</b>. Ici, le cycle A → C → E → B → D → A (une étoile) en est un parmi les 12.</p>", "g": "k5", "gt": "Graphe complet K5", "e": {"AC": "on", "CE": "on", "BE": "on", "BD": "on", "AD": "on"}}, {"t": "<p><b>Le lien avec la suite du cours.</b> Christofides utilise les deux notions : il fabrique un graphe dont tous les degrés sont pairs, y prend un <b>cycle eulérien</b>, puis le transforme en <b>cycle hamiltonien</b> en sautant les sommets déjà vus (raccourcis).</p><div class=\"box\">Pour reconnaître la question : « passer par chaque rue » → eulérien (postier). « Visiter chaque ville / client » → hamiltonien (TSP).</div>", "g": "k5", "gt": "Graphe complet K5"}], "rule": "<ul><li>Eulérien = chaque arête une fois (test sur les degrés). Hamiltonien = chaque sommet une fois (NP-complet).</li><li>C(ACM) ≤ C(H*) : retirer une arête d'un cycle donne un arbre couvrant.</li><li>C(H*) ≤ 2 C(ACM) : doubler l'arbre puis raccourcir, grâce à l'inégalité triangulaire.</li><li>PPV : ratio arbitrairement grand sans inégalité triangulaire, en O(log n) avec.</li></ul>"}, {"tab": "A11 Q1 : arbre et cycle", "name": "A11 Ex IV.1 : arbre couvrant minimum et cycle hamiltonien", "src": "A11 · Exercice IV.1 · cas euclidien", "g": {"nodes": {"A": [0, 1], "B": [5, 0], "C": [8, 3], "D": [7, 7], "E": [1, 6], "F": [4, 3]}, "edges": [], "euclid": true, "grid": true}, "gt": "6 points du plan", "steps": [{"t": "<p><b>Énoncé.</b> Graphe complet, coûts euclidiens. Donner une relation entre le coût de l'arbre couvrant minimum (ACM) et le coût d'un cycle hamiltonien. Justifier.</p><div class=\"box\"><b>Réponse :</b> C(ACM) ≤ C(H*) ≤ 2 × C(ACM), où H* est le cycle hamiltonien optimal. La première inégalité est toujours vraie (coûts positifs), la seconde utilise l'inégalité triangulaire.</div><p>On le vérifie sur 6 points du plan.</p>"}, {"t": "<p><b>ACM par Kruskal</b> : on prend les arêtes par longueur croissante en refusant celles qui ferment un cycle.</p><p>C(ACM) = 3,16 + 4,00 + 4,12 + 4,24 + 4,47 = <b>20,00</b>.</p>", "e": {"BF": "tree", "CF": "tree", "CD": "tree", "EF": "tree", "AF": "tree"}, "tbl": "<table><thead><tr><th>Arête</th><th>Longueur</th><th>Décision</th></tr></thead><tbody><tr><td>B–F</td><td>3,16</td><td><span class=\"ok\">prise</span></td></tr><tr><td>C–F</td><td>4,00</td><td><span class=\"ok\">prise</span></td></tr><tr><td>C–D</td><td>4,12</td><td><span class=\"ok\">prise</span></td></tr><tr><td>B–C</td><td>4,24</td><td><span class=\"no\">refusée : cycle B–F–C</span></td></tr><tr><td>E–F</td><td>4,24</td><td><span class=\"ok\">prise</span></td></tr><tr><td>A–F</td><td>4,47</td><td><span class=\"ok\">prise : 5 arêtes, fini</span></td></tr></tbody></table>", "badge": "ACM = 20,00"}, {"t": "<p><b>Cycle hamiltonien optimal</b> H* = A → E → D → C → B → F → A, de longueur <b>27,18</b> (trouvé en énumérant les 5!/2 = 60 cycles).</p>", "e": {"AE": "on", "DE": "on", "CD": "on", "BC": "on", "BF": "on", "AF": "on"}, "badge": "H* = 27,18"}, {"t": "<p><b>Première inégalité : ACM ≤ H*.</b> On retire une arête de H*, par exemple D–E (6,08). Il reste une chaîne qui passe par tous les sommets, sans cycle : c'est un <b>arbre couvrant</b>. Son coût est 27,18 − 6,08 = 21,10.</p><p>L'ACM est le moins cher des arbres couvrants, donc C(ACM) ≤ 21,10 ≤ C(H*). Ce raisonnement marche pour n'importe quel cycle hamiltonien.</p>", "e": {"AE": "on", "DE": "out", "CD": "on", "BC": "on", "BF": "on", "AF": "on"}, "badge": "chaîne = 21,10"}, {"t": "<p><b>Seconde inégalité : H* ≤ 2 ACM.</b> On double chaque arête de l'arbre. Tous les degrés deviennent pairs : on peut faire le tour de l'arbre en passant deux fois par chaque arête.</p><p>Parcours depuis A : A F B F C D C F E F A, coût <b>2 × 20,00 = 40,00</b>. Il visite tous les sommets mais en repasse par certains (F quatre fois).</p>", "e": {"BF": "dbl", "CF": "dbl", "CD": "dbl", "EF": "dbl", "AF": "dbl"}, "n": {"A": "start"}, "badge": "parcours = 40,00"}, {"t": "<p><b>Raccourcis.</b> On suit le parcours et on saute les sommets déjà vus : B → F → C devient B → C, D → C → F → E devient D → E, E → F → A devient E → A. Par l'<b>inégalité triangulaire</b>, chaque raccourci coûte moins que le détour qu'il remplace.</p><p>Tour obtenu : A F B C D E A, longueur <b>27,18 ≤ 40,00</b>. Comme H* est le meilleur des cycles : C(H*) ≤ 2 C(ACM).</p>", "e": {"BF": "on", "CF": "walk", "CD": "on", "EF": "walk", "AF": "on", "BC": "on", "DE": "on", "AE": "on"}, "n": {"A": "start"}, "badge": "tour = 27,18"}, {"t": "<p><b>Bilan sur l'exemple</b> : 20,00 ≤ 27,18 ≤ 40,00.</p><div class=\"box\"><b>Rédaction type.</b> (1) Retirer une arête d'un cycle hamiltonien donne un arbre couvrant, donc C(ACM) ≤ C(H) pour tout cycle H, en particulier C(ACM) ≤ C(H*). (2) En doublant l'ACM puis en court-circuitant les sommets déjà visités, on obtient un cycle hamiltonien de coût ≤ 2 C(ACM) (inégalité triangulaire, vraie dans le cas euclidien). Donc C(ACM) ≤ C(H*) ≤ 2 C(ACM).</div><p>Bonus : c'est l'heuristique « arbre doublé », de ratio 2. Christofides remplace le doublement par un couplage et descend à 3/2.</p>", "tbl": "<table><thead><tr><th>Quantité</th><th>Valeur</th></tr></thead><tbody><tr><td>C(ACM)</td><td>20,00</td></tr><tr><td>C(H*)</td><td>27,18</td></tr><tr><td>2 × C(ACM)</td><td>40,00</td></tr></tbody></table>", "e": {"AE": "on", "DE": "on", "CD": "on", "BC": "on", "BF": "on", "AF": "on"}}], "rule": "<ul><li>Eulérien = chaque arête une fois (test sur les degrés). Hamiltonien = chaque sommet une fois (NP-complet).</li><li>C(ACM) ≤ C(H*) : retirer une arête d'un cycle donne un arbre couvrant.</li><li>C(H*) ≤ 2 C(ACM) : doubler l'arbre puis raccourcir, grâce à l'inégalité triangulaire.</li><li>PPV : ratio arbitrairement grand sans inégalité triangulaire, en O(log n) avec.</li></ul>"}, {"tab": "A11 Q2 : ratio du PPV", "name": "A11 Ex IV.2 : ratio du plus proche voisin", "src": "A11 · Exercice IV.2 (même question en A05, A09, P18)", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "gt": "Instance sans inégalité triangulaire", "steps": [{"t": "<p><b>Énoncé.</b> Sans inégalité triangulaire, montrer que le rapport C(PPV) / C(optimal) peut être arbitrairement grand. Et avec l'inégalité triangulaire ?</p><p>Idée : cacher une arête énorme <b>M</b> que le PPV sera obligé de prendre à la fin, pour rentrer.</p><p>Instance : A–B = B–C = C–D = 1, A–C = B–D = 2, D–A = M (M grand). L'inégalité triangulaire est violée : D–A = M &gt; D–C + C–A = 3.</p>"}, {"t": "<p>PPV depuis A : voisins B (1), C (2), D (M). On va en <b>B</b>.</p>", "e": {"AB": "on"}, "n": {"A": "start"}}, {"t": "<p>Depuis B : C (1) ou D (2). On va en <b>C</b>. Depuis C : il ne reste que <b>D</b> (1).</p>", "e": {"AB": "on", "BC": "on", "CD": "on"}, "n": {"A": "start"}}, {"t": "<p>Tout est visité : retour obligatoire D → A, qui coûte <b>M</b>.</p><p>C(PPV) = 1 + 1 + 1 + M = <b>M + 3</b>.</p>", "e": {"AB": "on", "BC": "on", "CD": "on", "AD": "in"}, "n": {"A": "start"}, "badge": "PPV = M + 3"}, {"t": "<p><b>Optimal</b> : A → B → D → C → A = 1 + 2 + 1 + 2 = <b>6</b>, sans jamais prendre D–A.</p><p>Ratio = (M + 3) / 6, qui tend vers l'infini quand M grandit : <b>arbitrairement grand</b>.</p>", "e": {"AB": "on", "BD": "on", "CD": "on", "AC": "on"}, "badge": "optimum = 6", "tbl": "<table><thead><tr><th>M</th><th>PPV</th><th>Optimal</th><th>Ratio</th></tr></thead><tbody><tr><td>10</td><td>13</td><td>6</td><td>2,17</td></tr><tr><td>100</td><td>103</td><td>6</td><td>17,2</td></tr><tr><td>1 000</td><td>1 003</td><td>6</td><td>167,2</td></tr></tbody></table>"}, {"t": "<p><b>Avec l'inégalité triangulaire</b>, le ratio est borné, mais <b>pas par une constante</b> :</p><div class=\"box\">C(PPV) ≤ ½ (⌈log₂ n⌉ + 1) × C(optimal) (Rosenkrantz, Stearns et Lewis, 1977), et il existe des instances où le ratio grandit comme log n.</div><p>À écrire : le PPV n'a pas de rapport de performance constant, même avec l'inégalité triangulaire ; il est seulement en O(log n). Comparer avec l'arbre doublé (2) et Christofides (3/2).</p>"}], "rule": "<ul><li>Eulérien = chaque arête une fois (test sur les degrés). Hamiltonien = chaque sommet une fois (NP-complet).</li><li>C(ACM) ≤ C(H*) : retirer une arête d'un cycle donne un arbre couvrant.</li><li>C(H*) ≤ 2 C(ACM) : doubler l'arbre puis raccourcir, grâce à l'inégalité triangulaire.</li><li>PPV : ratio arbitrairement grand sans inégalité triangulaire, en O(log n) avec.</li></ul>"}]};
+</script>
+<script>
+(function(){
+"use strict";
+var A=window.ATELIER, KEY=A.key;
+var NS="http://www.w3.org/2000/svg";
+var $=function(id){return document.getElementById(id)};
+var STY={
+  on:   {c:"var(--accent)",w:.075,dash:null,lab:"tournée / cycle"},
+  tree: {c:"var(--r2)",w:.075,dash:null,lab:"arbre"},
+  dbl:  {c:"var(--r2)",w:.13,dash:null,lab:"arête doublée",inner:true},
+  match:{c:"var(--r3)",w:.07,dash:".16 .1",lab:"couplage"},
+  out:  {c:"var(--no)",w:.06,dash:".14 .1",lab:"arête retirée / interdite"},
+  "in": {c:"var(--cand)",w:.075,dash:null,lab:"arête ajoutée / candidate"},
+  heavy:{c:"var(--no)",w:.05,dash:null,lab:"arête lourde",op:.45},
+  walk: {c:"var(--muted)",w:.05,dash:".1 .08",lab:"détour"}
+};
+function key(u,v){return u<v?u+v:v+u}
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function fmt(x){return (Math.round(x*100)/100).toFixed(2).replace(".",",")}
+function graphOf(tab,st){var g=st.g||tab.g;return typeof g==="string"?A.graphs[g]:g}
+var T=0,k=0,timer=null;
+function dist(G,u,v){var a=G.nodes[u],b=G.nodes[v];return Math.hypot(a[0]-b[0],a[1]-b[1])}
+function draw(){
+  var tab=A.tabs[T],st=tab.steps[k],G=graphOf(tab,st);
+  var svg=$("g");svg.innerHTML="";
+  var xs=[],ys=[];for(var n in G.nodes){xs.push(G.nodes[n][0]);ys.push(G.nodes[n][1])}
+  var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+  var span=Math.max(x1-x0,y1-y0,1),pad=span*0.14,s=8/span;
+  var W=(x1-x0)*s+2*pad*s,H=(y1-y0)*s+2*pad*s;
+  svg.setAttribute("viewBox","0 0 "+W.toFixed(2)+" "+H.toFixed(2));
+  function X(n){return (G.nodes[n][0]-x0+pad)*s}
+  function Y(n){return (y1-G.nodes[n][1]+pad)*s}
+  var R=0.32,fs=0.34;
+  if(G.grid){var gg=el("g",{},svg);for(var gx=Math.ceil(x0-pad);gx<=x1+pad;gx++)el("line",{x1:(gx-x0+pad)*s,y1:0,x2:(gx-x0+pad)*s,y2:H,stroke:"var(--grid)","stroke-width":.02},gg);for(var gy=Math.ceil(y0-pad);gy<=y1+pad;gy++)el("line",{x1:0,y1:(y1-gy+pad)*s,x2:W,y2:(y1-gy+pad)*s,stroke:"var(--grid)","stroke-width":.02},gg)}
+  var E=st.e||{},labs=st.lab||{},base={};
+  (G.edges||[]).forEach(function(e){base[key(e[0],e[1])]=e});
+  var all={};for(var b in base)all[b]=1;for(var h in E)all[h]=1;
+  var used={};
+  function edgeLine(kk,cls,layer){
+    var u=kk[0],v=kk[1],e=base[kk],S=STY[cls];
+    var x1_=X(u),y1_=Y(u),x2_=X(v),y2_=Y(v);
+    if(!S){el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--grid-strong)","stroke-width":.035},layer);return}
+    el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:S.c,"stroke-width":S.w,"stroke-dasharray":S.dash||"none","stroke-linecap":"round",opacity:S.op||1},layer);
+    if(S.inner)el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--paper)","stroke-width":S.w/3},layer);
+    used[cls]=1;
+  }
+  var lay0=el("g",{},svg),lay1=el("g",{},svg),lay2=el("g",{},svg);
+  Object.keys(all).forEach(function(kk){var c=E[kk];edgeLine(kk,c,c&&c!=="heavy"?lay1:lay0)});
+  /* étiquettes */
+  Object.keys(all).forEach(function(kk){
+    var e=base[kk],txt=null,t=.5;
+    if(labs[kk]!==undefined)txt=labs[kk];
+    else if(e&&e[2]!=null)txt=String(e[2]);
+    else if(G.euclid&&E[kk]&&E[kk]!=="heavy")txt=fmt(dist(G,kk[0],kk[1]));
+    if(txt===null||txt==="")return;
+    if(e&&e[3]!=null)t=e[3];
+    var u=kk[0],v=kk[1];if(e&&e[0]!==u){t=1-t}
+    var lx=X(u)+(X(v)-X(u))*t,ly=Y(u)+(Y(v)-Y(u))*t;
+    var cls=E[kk],S=STY[cls];
+    el("text",{x:lx,y:ly+fs*0.35,"text-anchor":"middle","font-size":fs*0.95,"font-weight":S&&cls!=="heavy"?700:500,fill:S?S.c:"var(--muted)","font-family":"JetBrains Mono, monospace",stroke:"var(--paper)","stroke-width":.12,"paint-order":"stroke"},lay2).textContent=txt;
+  });
+  var N=st.n||{};
+  for(var nn in G.nodes){
+    var c=N[nn],fill="var(--paper)",stroke="var(--ink)",tc="var(--ink)",sw=.04;
+    if(c==="start"){fill="var(--r2)";stroke="var(--r2)";tc="var(--paper)"}
+    else if(c==="done"){fill="var(--accent)";stroke="var(--accent)";tc="var(--paper)"}
+    else if(c==="odd"){stroke="var(--cand)";sw=.09}
+    else if(c==="dup"){fill="var(--no)";stroke="var(--no)";tc="var(--paper)"}
+    else if(c==="dim"){stroke="var(--grid-strong)";tc="var(--muted)"}
+    el("circle",{cx:X(nn),cy:Y(nn),r:R,fill:fill,stroke:stroke,"stroke-width":sw},lay2);
+    el("text",{x:X(nn),y:Y(nn)+fs*0.36,"text-anchor":"middle","font-size":fs*1.05,"font-weight":700,fill:tc,"font-family":"Space Grotesk, sans-serif"},lay2).textContent=nn;
+  }
+  if(st.pt){st.pt.forEach(function(p){var px=(p[0]-x0+pad)*s,py=(y1-p[1]+pad)*s;el("circle",{cx:px,cy:py,r:.12,fill:"var(--r4)"},lay2);el("text",{x:px+.22,y:py-.15,"font-size":fs*.9,"font-weight":700,fill:"var(--r4)","font-family":"Space Grotesk, sans-serif"},lay2).textContent=p[2]})}
+  var lg="";for(var u in used){lg+='<span><i style="border-top-color:'+STY[u].c+(STY[u].dash?';border-top-style:dashed':'')+'"></i>'+STY[u].lab+"</span>"}
+  $("legend").innerHTML=lg;
+  $("gtitle").textContent=st.gt||tab.gt||"Graphe";
+  $("gbadge").textContent=st.badge||"";
+  $("stext").innerHTML=st.t;
+  $("stbl").innerHTML=st.tbl||"";
+  $("count").textContent="Étape "+(k+1)+" / "+tab.steps.length;
+  $("slider").max=tab.steps.length-1;$("slider").value=k;
+  $("prev").disabled=$("first").disabled=k===0;$("next").disabled=k===tab.steps.length-1;
+}
+function stop(){if(timer){clearInterval(timer);timer=null;$("play").textContent="Lecture"}}
+function pick(i){T=i;k=0;stop();var tab=A.tabs[i];$("tname").textContent=tab.name;$("tsrc").textContent=tab.src;
+  $("truletxt").innerHTML=tab.rule||"";$("trule").style.display=tab.rule?"":"none";
+  document.querySelectorAll("#tabs button").forEach(function(b,j){b.setAttribute("aria-selected",j===i)});
+  try{localStorage.setItem(KEY,String(i))}catch(e){}draw()}
+A.tabs.forEach(function(t,i){var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.textContent=t.tab||t.name;b.onclick=function(){pick(i)};$("tabs").appendChild(b)});
+$("next").onclick=function(){var n=A.tabs[T].steps.length;if(k<n-1){k++;draw()}};
+$("prev").onclick=function(){if(k>0){k--;draw()}};
+$("first").onclick=function(){k=0;draw()};
+$("slider").oninput=function(e){k=+e.target.value;draw()};
+$("play").onclick=function(){if(timer){stop();return}$("play").textContent="Pause";timer=setInterval(function(){if(k<A.tabs[T].steps.length-1){k++;draw()}else stop()},2500)};
+document.addEventListener("keydown",function(e){if(e.target.tagName==="INPUT")return;if(e.key==="ArrowRight")$("next").click();else if(e.key==="ArrowLeft")$("prev").click()});
+var s0=0;try{var x=+localStorage.getItem(KEY);if(x>=0&&x<A.tabs.length)s0=x}catch(e){}
+pick(s0);
+})();
+</script>
+</body>
+</html>

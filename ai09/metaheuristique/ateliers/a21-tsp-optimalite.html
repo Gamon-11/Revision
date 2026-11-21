@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>A21 Ex IV : optimalité et 2-opt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Mise en page : graphe à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#e07a10;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 4px 0;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.step{font-size:.95rem}
+.step p{margin:.4em 0}
+.step b,.step strong{font-weight:600}
+.step code,.mono{font-family:var(--font-mono);font-size:.86em}
+.step .ok{color:var(--ok);font-weight:600}
+.step .no{color:var(--no);font-weight:600}
+.step .box{background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin:.6em 0}
+.step ul,.step ol{margin:.3em 0;padding-left:1.3em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule summary{cursor:pointer}
+.rule ol,.rule ul{margin:4px 0 0;padding-left:20px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+<div class="wrap">
+  <header>
+    <h1>Atelier A21 Ex IV : prouver l'optimalité, puis PPV + 2-opt</h1>
+    <p>Annale A21, exercice IV (4 points, copie 3). Cycle de 21, preuve que 19 est optimal sans méthode exacte, puis pourquoi le PPV suivi d'une descente 2-opt ne trouve jamais l'optimum. Fais chaque étape sur ta feuille avant de cliquer.</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3 id="gtitle">Graphe</h3><span class="badge" id="gbadge"></span></div>
+      <svg id="g" viewBox="0 0 100 100" role="img" aria-label="Graphe de l'exercice"></svg>
+      <div class="legend" id="legend"></div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="tname"></h2>
+      <div class="badge" id="tsrc"></div>
+      <div class="step" id="stext"></div>
+      <div class="tbl" id="stbl"></div>
+      <details class="rule" id="trule"><summary><b>À retenir pour la copie</b></summary><div id="truletxt"></div></details>
+    </div>
+  </div>
+</div>
+<script>
+window.ATELIER={"key": "a21-tab", "graphs": {}, "tabs": [{"tab": "Q1 : cycle de 21", "name": "Question 1 : un cycle de longueur 21", "src": "A21 · Exercice IV.1", "g": {"nodes": {"a": [2, 0], "b": [1, -1.7320508075688772], "c": [-1, -1.7320508075688772], "d": [-2, 0], "e": [-1, 1.7320508075688772], "f": [1, 1.7320508075688772]}, "edges": [["e", "f", 3], ["f", "a", 10], ["a", "b", 3], ["b", "c", 2], ["c", "d", 1], ["d", "e", 2], ["e", "c", 5, 0.22], ["f", "b", 11, 0.78], ["d", "a", 10, 0.68], ["e", "a", 11, 0.2], ["e", "b", 4, 0.36], ["f", "d", 4, 0.2], ["f", "c", 10, 0.62], ["d", "b", 5, 0.18], ["c", "a", 4, 0.2]]}, "gt": "Graphe de l'énoncé", "steps": [{"t": "<p><b>Énoncé.</b> Graphe complet à 6 sommets, donc 15 arêtes, avec des coûts qui ne sont pas des distances euclidiennes. On demande un cycle hamiltonien de longueur 21.</p><p>Réflexe : classer les arêtes par coût croissant. Les cinq moins chères (1, 2, 2, 3, 3) forment presque tout le tour de l'hexagone.</p>", "tbl": "<table><thead><tr><th>Arête</th><th>Coût</th></tr></thead><tbody><tr><td>cd</td><td>1</td></tr><tr><td>bc</td><td>2</td></tr><tr><td>de</td><td>2</td></tr><tr><td>ab</td><td>3</td></tr><tr><td>ef</td><td>3</td></tr><tr><td>ac</td><td>4</td></tr><tr><td>be</td><td>4</td></tr><tr><td>df</td><td>4</td></tr><tr><td>bd</td><td>5</td></tr><tr><td>ce</td><td>5</td></tr><tr><td>ad</td><td>10</td></tr><tr><td>af</td><td>10</td></tr><tr><td>cf</td><td>10</td></tr><tr><td>ae</td><td>11</td></tr><tr><td>bf</td><td>11</td></tr></tbody></table>"}, {"t": "<p>On suit simplement le contour de l'hexagone : <b>a → b → c → d → e → f → a</b>.</p><p>Longueur : 3 + 2 + 1 + 2 + 3 + 10 = <b>21</b>. C'est bien un cycle hamiltonien : chaque sommet est visité une fois et on revient en a.</p><p>Il coûte cher à cause de la dernière arête f–a (10). C'est exactement le cycle que le PPV va trouver en question 3.</p>", "e": {"ab": "on", "bc": "on", "cd": "on", "de": "on", "ef": "on", "af": "on"}, "badge": "longueur 21"}], "rule": "<ul><li>Cycle hamiltonien = passe une fois par chaque <b>sommet</b> et revient au départ.</li><li>Prouver l'optimalité sans méthode exacte : une <b>borne inférieure</b> égale à la valeur trouvée. Ici, raisonnement par cas sur les arêtes lourdes et sur les arêtes forcées des sommets a et f.</li><li>PPV + 2-opt = heuristique + descente : on obtient un optimum local, rien de plus.</li><li>Compter les voisins 2-opt : n(n−3)/2 mouvements pour n sommets (9 pour n = 6).</li></ul>"}, {"tab": "Q2 : 19 est optimal", "name": "Question 2 : un cycle de 19, et pourquoi on ne fait pas mieux", "src": "A21 · Exercice IV.2 · justifier sans méthode exacte", "g": {"nodes": {"a": [2, 0], "b": [1, -1.7320508075688772], "c": [-1, -1.7320508075688772], "d": [-2, 0], "e": [-1, 1.7320508075688772], "f": [1, 1.7320508075688772]}, "edges": [["e", "f", 3], ["f", "a", 10], ["a", "b", 3], ["b", "c", 2], ["c", "d", 1], ["d", "e", 2], ["e", "c", 5, 0.22], ["f", "b", 11, 0.78], ["d", "a", 10, 0.68], ["e", "a", 11, 0.2], ["e", "b", 4, 0.36], ["f", "d", 4, 0.2], ["f", "c", 10, 0.62], ["d", "b", 5, 0.18], ["c", "a", 4, 0.2]]}, "gt": "Graphe de l'énoncé", "steps": [{"t": "<p>Cycle proposé : <b>a → b → e → f → d → c → a</b>.</p><p>Longueur : 3 + 4 + 3 + 4 + 1 + 4 = <b>19</b>.</p><p>Il reste à montrer qu'aucun cycle ne fait moins, <b>sans</b> méthode exacte (pas de Little, pas d'énumération). On va raisonner sur les arêtes chères.</p>", "e": {"ab": "on", "be": "on", "ef": "on", "df": "on", "cd": "on", "ac": "on"}, "badge": "longueur 19"}, {"t": "<p><b>Les arêtes lourdes.</b> Cinq arêtes coûtent 10 ou plus : a–d (10), a–f (10), c–f (10), a–e (11), b–f (11). Elles sont en rouge pâle.</p><p>On sépare en deux cas : le cycle utilise au moins une arête lourde, ou aucune.</p>", "e": {"af": "heavy", "bf": "heavy", "ad": "heavy", "ae": "heavy", "cf": "heavy"}}, {"t": "<p><b>Cas 1 : le cycle contient une arête lourde.</b> Un cycle hamiltonien à 6 sommets a 6 arêtes. Une coûte au moins 10, et les 5 autres coûtent au moins les 5 plus petits coûts du graphe : 1 + 2 + 2 + 3 + 3 = 11 (en orange).</p><p>Donc longueur ≥ 10 + 11 = <b>21 &gt; 19</b>. Aucun cycle de ce cas ne bat 19.</p>", "e": {"af": "heavy", "bf": "heavy", "ad": "heavy", "ae": "heavy", "cf": "heavy", "cd": "in", "bc": "in", "de": "in", "ab": "in", "ef": "in"}}, {"t": "<p><b>Cas 2 : aucune arête lourde.</b> Regarde le sommet <b>a</b> : sans arête lourde, il ne lui reste que a–b (3) et a–c (4). Un cycle passe deux fois par chaque sommet (une arrivée, un départ), donc ces deux arêtes sont <b>forcées</b>.</p><p>Même chose pour <b>f</b> : il ne reste que f–e (3) et f–d (4), forcées aussi.</p><p>Déjà 3 + 4 + 3 + 4 = <b>14</b>.</p>", "e": {"af": "heavy", "bf": "heavy", "ad": "heavy", "ae": "heavy", "cf": "heavy", "ab": "on", "ac": "on", "ef": "on", "df": "on"}, "n": {"a": "done", "f": "done"}}, {"t": "<p>Il manque 2 arêtes. b, c, d et e ont chacun une seule arête pour l'instant : il faut leur en donner une de plus, donc relier {b, c, d, e} deux à deux. Trois façons :</p><p>① <b>b–c + d–e</b> (2 + 2) : on ferme a–b–c–a et f–e–d–f, deux <span class=\"no\">sous-cycles</span>. Ce n'est pas un cycle hamiltonien.</p>", "e": {"ab": "on", "ac": "on", "ef": "on", "df": "on", "bc": "out", "de": "out"}, "n": {"a": "done", "f": "done"}, "tbl": "<table><thead><tr><th>Appariement</th><th>Coût ajouté</th><th>Total</th><th>Valide ?</th></tr></thead><tbody><tr class=\"pick\"><td>b–c + d–e</td><td>4</td><td>18</td><td><span class=\"no\">non, 2 sous-cycles</span></td></tr><tr><td>b–d + c–e</td><td>10</td><td>24</td><td>oui</td></tr><tr><td>b–e + c–d</td><td>5</td><td><b>19</b></td><td>oui</td></tr></tbody></table>"}, {"t": "<p>② <b>b–d + c–e</b> (5 + 5) : cycle a–b–d–f–e–c–a, longueur 14 + 10 = <b>24</b>.</p>", "e": {"ab": "on", "ac": "on", "ef": "on", "df": "on", "bd": "in", "ce": "in"}, "n": {"a": "done", "f": "done"}, "tbl": "<table><thead><tr><th>Appariement</th><th>Coût ajouté</th><th>Total</th><th>Valide ?</th></tr></thead><tbody><tr><td>b–c + d–e</td><td>4</td><td>18</td><td><span class=\"no\">non, 2 sous-cycles</span></td></tr><tr class=\"pick\"><td>b–d + c–e</td><td>10</td><td>24</td><td>oui</td></tr><tr><td>b–e + c–d</td><td>5</td><td><b>19</b></td><td>oui</td></tr></tbody></table>"}, {"t": "<p>③ <b>b–e + c–d</b> (4 + 1) : cycle a–b–e–f–d–c–a, longueur 14 + 5 = <b>19</b>.</p><p>C'est le minimum du cas 2.</p>", "e": {"ab": "on", "ac": "on", "ef": "on", "df": "on", "be": "in", "cd": "in"}, "n": {"a": "done", "f": "done"}, "badge": "longueur 19", "tbl": "<table><thead><tr><th>Appariement</th><th>Coût ajouté</th><th>Total</th><th>Valide ?</th></tr></thead><tbody><tr><td>b–c + d–e</td><td>4</td><td>18</td><td><span class=\"no\">non, 2 sous-cycles</span></td></tr><tr><td>b–d + c–e</td><td>10</td><td>24</td><td>oui</td></tr><tr class=\"pick\"><td>b–e + c–d</td><td>5</td><td><b>19</b></td><td>oui</td></tr></tbody></table>"}, {"t": "<p><b>Conclusion.</b> Cas 1 : au moins 21. Cas 2 : au moins 19, atteint. Donc <b>tout cycle hamiltonien mesure au moins 19</b>, et a–b–e–f–d–c–a est optimal (c'est même le seul).</p><div class=\"box\">Pourquoi pas une borne classique ? Le 1-arbre et la somme des deux plus petites arêtes par sommet ne donnent que 15 ici : trop faible pour conclure. Le raisonnement par cas sur les arêtes lourdes est la « justification sans méthode exacte » attendue.</div>", "e": {"ab": "on", "be": "on", "ef": "on", "df": "on", "cd": "on", "ac": "on"}, "badge": "optimum 19"}], "rule": "<ul><li>Cycle hamiltonien = passe une fois par chaque <b>sommet</b> et revient au départ.</li><li>Prouver l'optimalité sans méthode exacte : une <b>borne inférieure</b> égale à la valeur trouvée. Ici, raisonnement par cas sur les arêtes lourdes et sur les arêtes forcées des sommets a et f.</li><li>PPV + 2-opt = heuristique + descente : on obtient un optimum local, rien de plus.</li><li>Compter les voisins 2-opt : n(n−3)/2 mouvements pour n sommets (9 pour n = 6).</li></ul>"}, {"tab": "Q3 : PPV + 2-opt", "name": "Question 3 : PPV puis descente 2-opt", "src": "A21 · Exercice IV.3 · pour tout sommet de départ", "g": {"nodes": {"a": [2, 0], "b": [1, -1.7320508075688772], "c": [-1, -1.7320508075688772], "d": [-2, 0], "e": [-1, 1.7320508075688772], "f": [1, 1.7320508075688772]}, "edges": [["e", "f", 3], ["f", "a", 10], ["a", "b", 3], ["b", "c", 2], ["c", "d", 1], ["d", "e", 2], ["e", "c", 5, 0.22], ["f", "b", 11, 0.78], ["d", "a", 10, 0.68], ["e", "a", 11, 0.2], ["e", "b", 4, 0.36], ["f", "d", 4, 0.2], ["f", "c", 10, 0.62], ["d", "b", 5, 0.18], ["c", "a", 4, 0.2]]}, "gt": "Graphe de l'énoncé", "steps": [{"t": "<p><b>Énoncé.</b> Montrer que, <b>quel que soit le sommet de départ</b>, le PPV suivi d'une descente 2-opt ne trouve pas le cycle optimal (19).</p><p>Plan : (1) le PPV donne toujours le même cycle de 21, (2) ce cycle est un minimum local pour 2-opt, donc la descente s'arrête tout de suite à 21.</p>"}, {"t": "<p><b>PPV depuis a.</b> Voisins de a : b (3), c (4)… on va en <b>b</b>. Depuis b : c (2) est le plus proche. Depuis c : d (1).</p>", "e": {"ab": "on", "bc": "on", "cd": "on"}, "n": {"a": "start"}}, {"t": "<p>Depuis d : e (2). Depuis e : il ne reste que f (3). Retour obligatoire f → a : <b>10</b>.</p><p>Total : 3 + 2 + 1 + 2 + 3 + 10 = <b>21</b>, l'hexagone de la question 1.</p>", "e": {"ab": "on", "bc": "on", "cd": "on", "de": "on", "ef": "on", "af": "on"}, "n": {"a": "start"}, "badge": "PPV depuis a : 21"}, {"t": "<p><b>Les 6 départs.</b> On refait le PPV depuis chaque sommet (aucune égalité à départager). On retrouve à chaque fois le <b>même cycle</b>, parcouru depuis un autre point ou dans l'autre sens : l'hexagone de longueur 21.</p><p>C'est logique : les arêtes 1, 2, 2, 3, 3 sont les plus proches voisines partout, et la seule arête qui reste pour fermer est a–f (10).</p>", "e": {"ab": "on", "bc": "on", "cd": "on", "de": "on", "ef": "on", "af": "on"}, "tbl": "<table><thead><tr><th>Départ</th><th>Ordre</th><th>Calcul</th><th>Longueur</th></tr></thead><tbody><tr><td>a</td><td>a b c d e f</td><td>3+2+1+2+3+10</td><td>21</td></tr><tr><td>b</td><td>b c d e f a</td><td>2+1+2+3+10+3</td><td>21</td></tr><tr><td>c</td><td>c d e f a b</td><td>1+2+3+10+3+2</td><td>21</td></tr><tr><td>d</td><td>d c b a f e</td><td>1+2+3+10+3+2</td><td>21</td></tr><tr><td>e</td><td>e d c b a f</td><td>2+1+2+3+10+3</td><td>21</td></tr><tr><td>f</td><td>f e d c b a</td><td>3+2+1+2+3+10</td><td>21</td></tr></tbody></table>", "badge": "21 pour tout départ"}, {"t": "<p><b>Descente 2-opt.</b> Un mouvement 2-opt retire deux arêtes non adjacentes du cycle et reconnecte autrement. Sur un cycle à 6 sommets, il y a 6×3/2 = <b>9 mouvements</b>. On calcule Δ = (ajoutées) − (retirées).</p><p>Les 9 valeurs de Δ sont <b>toutes positives</b> : aucun mouvement n'améliore. L'hexagone est un <b>minimum local</b> pour 2-opt, la descente s'arrête à 21.</p>", "e": {"ab": "on", "bc": "on", "cd": "on", "de": "on", "ef": "on", "af": "on"}, "tbl": "<table><thead><tr><th>Arêtes retirées</th><th>Arêtes ajoutées</th><th>Δ</th></tr></thead><tbody><tr><td>ab (3) + cd (1)</td><td>ac (4) + bd (5)</td><td>+5</td></tr><tr><td>ab (3) + de (2)</td><td>ad (10) + be (4)</td><td>+9</td></tr><tr><td>ab (3) + ef (3)</td><td>ae (11) + bf (11)</td><td>+16</td></tr><tr><td>bc (2) + de (2)</td><td>bd (5) + ce (5)</td><td>+6</td></tr><tr><td>bc (2) + ef (3)</td><td>be (4) + cf (10)</td><td>+9</td></tr><tr><td>bc (2) + fa (10)</td><td>bf (11) + ca (4)</td><td>+3</td></tr><tr><td>cd (1) + ef (3)</td><td>ce (5) + df (4)</td><td>+5</td></tr><tr><td>cd (1) + fa (10)</td><td>cf (10) + da (10)</td><td>+9</td></tr><tr><td>de (2) + fa (10)</td><td>df (4) + ea (11)</td><td>+3</td></tr></tbody></table>"}, {"t": "<p>Exemple d'un des meilleurs mouvements : retirer b–c (2) et f–a (10), ajouter b–f (11) et c–a (4). Δ = 15 − 12 = <b>+3</b> : ça empire.</p><p>Même l'arête chère f–a ne peut pas être enlevée par 2-opt, car toutes les reconnexions passent par une autre arête lourde.</p>", "e": {"ab": "on", "bc": "out", "cd": "on", "de": "on", "ef": "on", "af": "out", "bf": "in", "ac": "in"}}, {"t": "<p><b>Pourquoi 2-opt est bloqué.</b> L'optimum a–b–e–f–d–c–a partage 3 arêtes avec l'hexagone (a–b, c–d, e–f). Il faut en échanger <b>trois</b> : retirer b–c, d–e, f–a et ajouter b–e, d–f, a–c. C'est un mouvement <b>3-opt</b>, hors de portée d'un voisinage 2-opt.</p><div class=\"box\"><b>À écrire :</b> pour tout départ, PPV → hexagone (21) ; les 9 voisins 2-opt sont tous plus longs (Δ ≥ +3), donc la descente s'arrête sur 21 &gt; 19. Une descente ne garantit qu'un optimum <b>local</b>.</div>", "e": {"ab": "on", "cd": "on", "ef": "on", "bc": "out", "de": "out", "af": "out", "be": "in", "df": "in", "ac": "in"}}], "rule": "<ul><li>Cycle hamiltonien = passe une fois par chaque <b>sommet</b> et revient au départ.</li><li>Prouver l'optimalité sans méthode exacte : une <b>borne inférieure</b> égale à la valeur trouvée. Ici, raisonnement par cas sur les arêtes lourdes et sur les arêtes forcées des sommets a et f.</li><li>PPV + 2-opt = heuristique + descente : on obtient un optimum local, rien de plus.</li><li>Compter les voisins 2-opt : n(n−3)/2 mouvements pour n sommets (9 pour n = 6).</li></ul>"}]};
+</script>
+<script>
+(function(){
+"use strict";
+var A=window.ATELIER, KEY=A.key;
+var NS="http://www.w3.org/2000/svg";
+var $=function(id){return document.getElementById(id)};
+var STY={
+  on:   {c:"var(--accent)",w:.075,dash:null,lab:"tournée / cycle"},
+  tree: {c:"var(--r2)",w:.075,dash:null,lab:"arbre"},
+  dbl:  {c:"var(--r2)",w:.13,dash:null,lab:"arête doublée",inner:true},
+  match:{c:"var(--r3)",w:.07,dash:".16 .1",lab:"couplage"},
+  out:  {c:"var(--no)",w:.06,dash:".14 .1",lab:"arête retirée / interdite"},
+  "in": {c:"var(--cand)",w:.075,dash:null,lab:"arête ajoutée / candidate"},
+  heavy:{c:"var(--no)",w:.05,dash:null,lab:"arête lourde",op:.45},
+  walk: {c:"var(--muted)",w:.05,dash:".1 .08",lab:"détour"}
+};
+function key(u,v){return u<v?u+v:v+u}
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function fmt(x){return (Math.round(x*100)/100).toFixed(2).replace(".",",")}
+function graphOf(tab,st){var g=st.g||tab.g;return typeof g==="string"?A.graphs[g]:g}
+var T=0,k=0,timer=null;
+function dist(G,u,v){var a=G.nodes[u],b=G.nodes[v];return Math.hypot(a[0]-b[0],a[1]-b[1])}
+function draw(){
+  var tab=A.tabs[T],st=tab.steps[k],G=graphOf(tab,st);
+  var svg=$("g");svg.innerHTML="";
+  var xs=[],ys=[];for(var n in G.nodes){xs.push(G.nodes[n][0]);ys.push(G.nodes[n][1])}
+  var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+  var span=Math.max(x1-x0,y1-y0,1),pad=span*0.14,s=8/span;
+  var W=(x1-x0)*s+2*pad*s,H=(y1-y0)*s+2*pad*s;
+  svg.setAttribute("viewBox","0 0 "+W.toFixed(2)+" "+H.toFixed(2));
+  function X(n){return (G.nodes[n][0]-x0+pad)*s}
+  function Y(n){return (y1-G.nodes[n][1]+pad)*s}
+  var R=0.32,fs=0.34;
+  if(G.grid){var gg=el("g",{},svg);for(var gx=Math.ceil(x0-pad);gx<=x1+pad;gx++)el("line",{x1:(gx-x0+pad)*s,y1:0,x2:(gx-x0+pad)*s,y2:H,stroke:"var(--grid)","stroke-width":.02},gg);for(var gy=Math.ceil(y0-pad);gy<=y1+pad;gy++)el("line",{x1:0,y1:(y1-gy+pad)*s,x2:W,y2:(y1-gy+pad)*s,stroke:"var(--grid)","stroke-width":.02},gg)}
+  var E=st.e||{},labs=st.lab||{},base={};
+  (G.edges||[]).forEach(function(e){base[key(e[0],e[1])]=e});
+  var all={};for(var b in base)all[b]=1;for(var h in E)all[h]=1;
+  var used={};
+  function edgeLine(kk,cls,layer){
+    var u=kk[0],v=kk[1],e=base[kk],S=STY[cls];
+    var x1_=X(u),y1_=Y(u),x2_=X(v),y2_=Y(v);
+    if(!S){el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--grid-strong)","stroke-width":.035},layer);return}
+    el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:S.c,"stroke-width":S.w,"stroke-dasharray":S.dash||"none","stroke-linecap":"round",opacity:S.op||1},layer);
+    if(S.inner)el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--paper)","stroke-width":S.w/3},layer);
+    used[cls]=1;
+  }
+  var lay0=el("g",{},svg),lay1=el("g",{},svg),lay2=el("g",{},svg);
+  Object.keys(all).forEach(function(kk){var c=E[kk];edgeLine(kk,c,c&&c!=="heavy"?lay1:lay0)});
+  /* étiquettes */
+  Object.keys(all).forEach(function(kk){
+    var e=base[kk],txt=null,t=.5;
+    if(labs[kk]!==undefined)txt=labs[kk];
+    else if(e&&e[2]!=null)txt=String(e[2]);
+    else if(G.euclid&&E[kk]&&E[kk]!=="heavy")txt=fmt(dist(G,kk[0],kk[1]));
+    if(txt===null||txt==="")return;
+    if(e&&e[3]!=null)t=e[3];
+    var u=kk[0],v=kk[1];if(e&&e[0]!==u){t=1-t}
+    var lx=X(u)+(X(v)-X(u))*t,ly=Y(u)+(Y(v)-Y(u))*t;
+    var cls=E[kk],S=STY[cls];
+    el("text",{x:lx,y:ly+fs*0.35,"text-anchor":"middle","font-size":fs*0.95,"font-weight":S&&cls!=="heavy"?700:500,fill:S?S.c:"var(--muted)","font-family":"JetBrains Mono, monospace",stroke:"var(--paper)","stroke-width":.12,"paint-order":"stroke"},lay2).textContent=txt;
+  });
+  var N=st.n||{};
+  for(var nn in G.nodes){
+    var c=N[nn],fill="var(--paper)",stroke="var(--ink)",tc="var(--ink)",sw=.04;
+    if(c==="start"){fill="var(--r2)";stroke="var(--r2)";tc="var(--paper)"}
+    else if(c==="done"){fill="var(--accent)";stroke="var(--accent)";tc="var(--paper)"}
+    else if(c==="odd"){stroke="var(--cand)";sw=.09}
+    else if(c==="dup"){fill="var(--no)";stroke="var(--no)";tc="var(--paper)"}
+    else if(c==="dim"){stroke="var(--grid-strong)";tc="var(--muted)"}
+    el("circle",{cx:X(nn),cy:Y(nn),r:R,fill:fill,stroke:stroke,"stroke-width":sw},lay2);
+    el("text",{x:X(nn),y:Y(nn)+fs*0.36,"text-anchor":"middle","font-size":fs*1.05,"font-weight":700,fill:tc,"font-family":"Space Grotesk, sans-serif"},lay2).textContent=nn;
+  }
+  if(st.pt){st.pt.forEach(function(p){var px=(p[0]-x0+pad)*s,py=(y1-p[1]+pad)*s;el("circle",{cx:px,cy:py,r:.12,fill:"var(--r4)"},lay2);el("text",{x:px+.22,y:py-.15,"font-size":fs*.9,"font-weight":700,fill:"var(--r4)","font-family":"Space Grotesk, sans-serif"},lay2).textContent=p[2]})}
+  var lg="";for(var u in used){lg+='<span><i style="border-top-color:'+STY[u].c+(STY[u].dash?';border-top-style:dashed':'')+'"></i>'+STY[u].lab+"</span>"}
+  $("legend").innerHTML=lg;
+  $("gtitle").textContent=st.gt||tab.gt||"Graphe";
+  $("gbadge").textContent=st.badge||"";
+  $("stext").innerHTML=st.t;
+  $("stbl").innerHTML=st.tbl||"";
+  $("count").textContent="Étape "+(k+1)+" / "+tab.steps.length;
+  $("slider").max=tab.steps.length-1;$("slider").value=k;
+  $("prev").disabled=$("first").disabled=k===0;$("next").disabled=k===tab.steps.length-1;
+}
+function stop(){if(timer){clearInterval(timer);timer=null;$("play").textContent="Lecture"}}
+function pick(i){T=i;k=0;stop();var tab=A.tabs[i];$("tname").textContent=tab.name;$("tsrc").textContent=tab.src;
+  $("truletxt").innerHTML=tab.rule||"";$("trule").style.display=tab.rule?"":"none";
+  document.querySelectorAll("#tabs button").forEach(function(b,j){b.setAttribute("aria-selected",j===i)});
+  try{localStorage.setItem(KEY,String(i))}catch(e){}draw()}
+A.tabs.forEach(function(t,i){var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.textContent=t.tab||t.name;b.onclick=function(){pick(i)};$("tabs").appendChild(b)});
+$("next").onclick=function(){var n=A.tabs[T].steps.length;if(k<n-1){k++;draw()}};
+$("prev").onclick=function(){if(k>0){k--;draw()}};
+$("first").onclick=function(){k=0;draw()};
+$("slider").oninput=function(e){k=+e.target.value;draw()};
+$("play").onclick=function(){if(timer){stop();return}$("play").textContent="Pause";timer=setInterval(function(){if(k<A.tabs[T].steps.length-1){k++;draw()}else stop()},2500)};
+document.addEventListener("keydown",function(e){if(e.target.tagName==="INPUT")return;if(e.key==="ArrowRight")$("next").click();else if(e.key==="ArrowLeft")$("prev").click()});
+var s0=0;try{var x=+localStorage.getItem(KEY);if(x>=0&&x<A.tabs.length)s0=x}catch(e){}
+pick(s0);
+})();
+</script>
+</body>
+</html>

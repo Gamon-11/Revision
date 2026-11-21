@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Garanties du TSP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Mise en page : graphe à gauche, carnet d'explication à droite ; une colonne sur téléphone */
+:root{
+  --bg:#f5f7fa; --paper:#ffffff; --grid:#dbe4ef; --grid-strong:#b9c8da;
+  --ink:#16202c; --muted:#5b6878; --line:#d6dde6;
+  --accent:#1f5fd1; --accent-soft:#e3ecfb;
+  --r1:#d0461f; --r2:#1f8a5b; --r3:#7b3fc4; --r4:#b07d00;
+  --ok:#1f8a5b; --no:#c23b3b; --cand:#e07a10;
+  --font-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --paper:#151c25; --grid:#222d3a; --grid-strong:#334355;
+  --ink:#e6edf5; --muted:#97a5b6; --line:#2a3644;
+  --accent:#7aa7ff; --accent-soft:#1c2a42;
+  --r1:#ff8a60; --r2:#4fd29a; --r3:#bb8cff; --r4:#f2c14e;
+  --ok:#4fd29a; --no:#ff7b7b; --cand:#ffab4c; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header h1{font-family:var(--font-display);font-size:1.6rem;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:75ch}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:600 .9rem var(--font-body);padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.tabs button:focus-visible,.ctrl button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px;min-width:0}
+.boardh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 4px 6px}
+.boardh h3{margin:0;font-family:var(--font-display);font-size:1rem}
+.badge{font-family:var(--font-mono);font-size:.78rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.ctrl button{font:600 .9rem var(--font-body);padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ctrl button.primary{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.ctrl button:disabled{opacity:.4;cursor:default}
+.ctrl .count{font-family:var(--font-mono);color:var(--muted);font-size:.85rem;margin-left:auto}
+input[type=range]{flex:1 1 140px;accent-color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 4px 0;font-size:.8rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid}
+.notes{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.notes h2{font-family:var(--font-display);font-size:1.15rem;margin:0}
+.step{font-size:.95rem}
+.step p{margin:.4em 0}
+.step b,.step strong{font-weight:600}
+.step code,.mono{font-family:var(--font-mono);font-size:.86em}
+.step .ok{color:var(--ok);font-weight:600}
+.step .no{color:var(--no);font-weight:600}
+.step .box{background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin:.6em 0}
+.step ul,.step ol{margin:.3em 0;padding-left:1.3em}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums;width:100%}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.76rem;text-transform:uppercase;letter-spacing:.04em}
+td.ok{color:var(--ok);font-weight:600} td.no{color:var(--no)}
+tr.pick td{background:var(--accent-soft)}
+.rule{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:.9rem}
+.rule summary{cursor:pointer}
+.rule ol,.rule ul{margin:4px 0 0;padding-left:20px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<style>.rv-bar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px max(16px,env(safe-area-inset-left,0px));font:500 13px/1.4 Inter,"Segoe UI",system-ui,sans-serif;background:#ffffff;border-bottom:1px solid #d6dde6;color:#5b6878}.rv-bar a{color:#1f5fd1;text-decoration:none;font-weight:600}.rv-bar a:hover{text-decoration:underline}@media (prefers-color-scheme:dark){.rv-bar{background:#151c25;border-color:#2a3644;color:#97a5b6}.rv-bar a{color:#7aa7ff}}</style>
+<nav class="rv-bar" aria-label="Fil d'Ariane"><a href="/ai09/metaheuristique">← Métaheuristique</a><span><a href="/">Révisions</a> / <a href="/ai09">AI09</a></span></nav>
+<div class="wrap">
+  <header>
+    <h1>Atelier : ratios et garanties du TSP (PPV, 2-opt, Christofides)</h1>
+    <p>Les questions de cours qui reviennent : ratio du PPV, rôle de l'inégalité triangulaire, 2-opt et croisements (P18 = A05 = A09, exercice 3), puis algorithme en O(n!), ratio de Christofides et ratio du 2-opt (A12, exercice IV).</p>
+  </header>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="main">
+    <div class="board">
+      <div class="boardh"><h3 id="gtitle">Graphe</h3><span class="badge" id="gbadge"></span></div>
+      <svg id="g" viewBox="0 0 100 100" role="img" aria-label="Graphe de l'exercice"></svg>
+      <div class="legend" id="legend"></div>
+      <div class="ctrl">
+        <button id="first" type="button" aria-label="Revenir au début">⏮</button>
+        <button id="prev" type="button">◀ Précédente</button>
+        <button id="next" type="button" class="primary">Étape suivante ▶</button>
+        <button id="play" type="button">Lecture</button>
+        <span class="count" id="count"></span>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="Étape">
+      </div>
+    </div>
+    <div class="notes">
+      <h2 id="tname"></h2>
+      <div class="badge" id="tsrc"></div>
+      <div class="step" id="stext"></div>
+      <div class="tbl" id="stbl"></div>
+      <details class="rule" id="trule"><summary><b>À retenir pour la copie</b></summary><div id="truletxt"></div></details>
+    </div>
+  </div>
+</div>
+<script>
+window.ATELIER={"key": "ratios-tab", "graphs": {}, "tabs": [{"tab": "P18 Q1 : ratio du PPV", "name": "Ratio du plus proche voisin", "src": "P18 Ex 3.1 · même question en A05, A09, A11", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "gt": "Instance sans inégalité triangulaire", "steps": [{"t": "<p><b>Énoncé.</b> Sans inégalité triangulaire, montrer que le rapport C(PPV) / C(optimal) peut être arbitrairement grand. Et avec l'inégalité triangulaire ?</p><p>Idée : cacher une arête énorme <b>M</b> que le PPV sera obligé de prendre à la fin, pour rentrer.</p><p>Instance : A–B = B–C = C–D = 1, A–C = B–D = 2, D–A = M (M grand). L'inégalité triangulaire est violée : D–A = M &gt; D–C + C–A = 3.</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p>PPV depuis A : voisins B (1), C (2), D (M). On va en <b>B</b>.</p>", "e": {"AB": "on"}, "n": {"A": "start"}, "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p>Depuis B : C (1) ou D (2). On va en <b>C</b>. Depuis C : il ne reste que <b>D</b> (1).</p>", "e": {"AB": "on", "BC": "on", "CD": "on"}, "n": {"A": "start"}, "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p>Tout est visité : retour obligatoire D → A, qui coûte <b>M</b>.</p><p>C(PPV) = 1 + 1 + 1 + M = <b>M + 3</b>.</p>", "e": {"AB": "on", "BC": "on", "CD": "on", "AD": "in"}, "n": {"A": "start"}, "badge": "PPV = M + 3", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p><b>Optimal</b> : A → B → D → C → A = 1 + 2 + 1 + 2 = <b>6</b>, sans jamais prendre D–A.</p><p>Ratio = (M + 3) / 6, qui tend vers l'infini quand M grandit : <b>arbitrairement grand</b>.</p>", "e": {"AB": "on", "BD": "on", "CD": "on", "AC": "on"}, "badge": "optimum = 6", "tbl": "<table><thead><tr><th>M</th><th>PPV</th><th>Optimal</th><th>Ratio</th></tr></thead><tbody><tr><td>10</td><td>13</td><td>6</td><td>2,17</td></tr><tr><td>100</td><td>103</td><td>6</td><td>17,2</td></tr><tr><td>1 000</td><td>1 003</td><td>6</td><td>167,2</td></tr></tbody></table>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p><b>Avec l'inégalité triangulaire</b>, le ratio est borné, mais <b>pas par une constante</b> :</p><div class=\"box\">C(PPV) ≤ ½ (⌈log₂ n⌉ + 1) × C(optimal) (Rosenkrantz, Stearns et Lewis, 1977), et il existe des instances où le ratio grandit comme log n.</div><p>À écrire : le PPV n'a pas de rapport de performance constant, même avec l'inégalité triangulaire ; il est seulement en O(log n). Comparer avec l'arbre doublé (2) et Christofides (3/2).</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", "M"], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}, {"tab": "P18 Q2 : visites multiples", "name": "Visiter une ville plusieurs fois", "src": "P18 Ex 3.2 · même question en A05, A09", "g": {"nodes": {"A": [0, 0], "B": [6, 0], "C": [6, 4], "D": [0, 4], "E": [3, 2]}, "edges": [], "euclid": true, "grid": true}, "gt": "Exemple euclidien", "steps": [{"t": "<p><b>Énoncé (P18 Q2).</b> Variante du TSP où l'on peut visiter une ville plusieurs fois. Si les distances vérifient l'inégalité triangulaire, montrer qu'il existe toujours une solution optimale qui visite chaque ville <b>une seule fois</b>.</p><p>Idée : une visite en double peut toujours être court-circuitée sans rien perdre.</p>", "g": {"nodes": {"A": [0, 0], "B": [6, 0], "C": [6, 4], "D": [0, 4], "E": [3, 2]}, "edges": [], "euclid": true, "grid": true}}, {"t": "<p>Une solution de la variante : A → B → E → C → D → <b>E</b> → A. La ville E est visitée deux fois (en rouge). Longueur : <b>26,42</b>.</p>", "g": {"nodes": {"A": [0, 0], "B": [6, 0], "C": [6, 4], "D": [0, 4], "E": [3, 2]}, "edges": [], "euclid": true, "grid": true}, "n": {"E": "dup"}, "e": {"AB": "on", "BE": "on", "CE": "on", "CD": "on", "DE": "on", "AE": "on"}, "lab": {"AB": "1", "BE": "2", "CE": "3", "CD": "4", "DE": "5", "AE": "6"}, "badge": "longueur 26,42"}, {"t": "<p>On supprime la deuxième visite de E : D → E → A devient <b>D → A</b>. Par l'inégalité triangulaire, d(D, A) ≤ d(D, E) + d(E, A), soit 4,00 ≤ 3,61 + 3,61.</p><p>Nouvelle longueur : <b>23,21</b>, et chaque ville n'est plus visitée qu'une fois.</p>", "g": {"nodes": {"A": [0, 0], "B": [6, 0], "C": [6, 4], "D": [0, 4], "E": [3, 2]}, "edges": [], "euclid": true, "grid": true}, "e": {"AB": "on", "BE": "on", "CE": "on", "CD": "on", "AD": "on", "DE": "walk", "AE": "walk"}, "badge": "longueur 23,21"}, {"t": "<p><b>Preuve générale.</b> Prends une solution optimale S de la variante. Tant qu'une ville v apparaît deux fois, choisis une de ses visites, entre u et w, et remplace u → v → w par u → w. Comme d(u, w) ≤ d(u, v) + d(v, w), le coût ne monte pas. Chaque remplacement retire une visite, donc on s'arrête, sur un cycle hamiltonien H.</p><p>C(H) ≤ C(S) = optimum de la variante, et H est aussi une solution de la variante : H est optimal et visite chaque ville une fois.</p>", "g": {"nodes": {"A": [0, 0], "B": [6, 0], "C": [6, 4], "D": [0, 4], "E": [3, 2]}, "edges": [], "euclid": true, "grid": true}, "e": {"AB": "on", "BE": "on", "CE": "on", "CD": "on", "AD": "on"}}, {"t": "<p><b>Sans l'inégalité triangulaire, c'est faux.</b> Étoile : H relié à A, B, C par des arêtes de coût 1, et 10 entre A, B, C (10 &gt; 1 + 1 : inégalité violée).</p><p>Avec répétitions : H A H B H C H = <b>6</b>. Sans répétition, tout cycle utilise au moins deux arêtes à 10 : H A B C H = 1 + 10 + 10 + 1 = <b>22</b>.</p>", "g": {"nodes": {"H": [0, 0], "A": [-2, 1.6], "B": [2, 1.6], "C": [0, -2.4]}, "edges": [["H", "A", 1], ["H", "B", 1], ["H", "C", 1], ["A", "B", 10], ["B", "C", 10], ["C", "A", 10]]}, "gt": "Contre-exemple sans inégalité triangulaire", "n": {"H": "dup"}, "e": {"AH": "on", "BH": "on", "CH": "on"}}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}, {"tab": "P18 Q3 : 2-opt et croisements", "name": "2-opt optimal ⇒ pas de croisement (réciproque fausse)", "src": "P18 Ex 3.3 · même question en A05, A09", "g": {"nodes": {"A": [0, 0], "B": [4, 0], "C": [4, 3], "D": [0, 3]}, "edges": [], "euclid": true, "grid": true}, "gt": "TSP euclidien", "steps": [{"t": "<p><b>Énoncé (P18 Q3).</b> TSP euclidien : montrer qu'un tour 2-opt optimal ne se croise jamais, mais qu'un tour sans croisement n'est pas forcément 2-opt optimal.</p><p>« 2-opt optimal » = aucun mouvement 2-opt ne le raccourcit (minimum local).</p><p>Tour A → C → B → D → A : les arêtes A–C et B–D se croisent en O.</p>", "g": {"nodes": {"A": [0, 0], "B": [4, 0], "C": [4, 3], "D": [0, 3]}, "edges": [], "euclid": true, "grid": true}, "e": {"AC": "on", "BC": "on", "BD": "on", "AD": "on"}, "pt": [[2, 1.5, "O"]], "badge": "longueur 16,00"}, {"t": "<p><b>Sens direct.</b> Le mouvement 2-opt retire A–C et B–D et ajoute A–B et C–D (tour A → B → C → D → A).</p><p>O est sur les deux segments, donc d(A, C) = AO + OC et d(B, D) = BO + OD. Par l'inégalité triangulaire : d(A, B) ≤ AO + OB et d(C, D) ≤ CO + OD. En sommant : d(A, B) + d(C, D) ≤ d(A, C) + d(B, D), avec égalité seulement si les points sont alignés.</p><p>Ici 4 + 4 = 8 &lt; 5 + 5 = 10. Un tour qui se croise peut donc toujours être raccourci par 2-opt : il n'est pas 2-opt optimal. Par contraposée, <b>2-opt optimal ⇒ aucun croisement</b>.</p>", "g": {"nodes": {"A": [0, 0], "B": [4, 0], "C": [4, 3], "D": [0, 3]}, "edges": [], "euclid": true, "grid": true}, "e": {"BC": "on", "AD": "on", "AC": "out", "BD": "out", "AB": "in", "CD": "in"}, "pt": [[2, 1.5, "O"]], "badge": "16 → 14"}, {"t": "<p><b>La réciproque est fausse.</b> Tour A → B → C → D → E → A en forme de flèche : <b>aucun croisement</b>. Longueur : 2 + 6 + 5,10 + 5,10 + 6 = <b>24,20</b>.</p>", "g": {"nodes": {"A": [6, 0], "B": [6, 2], "C": [0, 2], "D": [5, 1], "E": [0, 0]}, "edges": [], "euclid": true, "grid": true}, "e": {"AB": "on", "BC": "on", "CD": "on", "DE": "on", "AE": "on"}, "badge": "longueur 24,20"}, {"t": "<p>Pourtant un mouvement 2-opt l'améliore : retirer C–D (5,10) et E–A (6), ajouter C–E (2) et D–A (1,41). Gain : 11,10 − 3,41 = <b>7,68</b>.</p><p>Nouveau tour A → B → C → E → D → A, longueur <b>16,51</b>. Donc « sans croisement » ne suffit pas pour être 2-opt optimal.</p>", "g": {"nodes": {"A": [6, 0], "B": [6, 2], "C": [0, 2], "D": [5, 1], "E": [0, 0]}, "edges": [], "euclid": true, "grid": true}, "e": {"AB": "on", "BC": "on", "DE": "on", "CD": "out", "AE": "out", "CE": "in", "AD": "in"}, "badge": "24,20 → 16,51"}, {"t": "<div class=\"box\"><b>À écrire.</b> Si deux arêtes [a, b] et [c, d] du tour se coupent en O, l'échange 2-opt les remplace par [a, c] et [b, d] (ou l'inverse selon le sens), et d(a, c) + d(b, d) &lt; d(a, b) + d(c, d) par l'inégalité triangulaire autour de O. Donc un tour 2-opt optimal n'a pas de croisement. La réciproque est fausse : contre-exemple ci-dessus.</div>", "g": {"nodes": {"A": [6, 0], "B": [6, 2], "C": [0, 2], "D": [5, 1], "E": [0, 0]}, "edges": [], "euclid": true, "grid": true}, "e": {"AB": "on", "BC": "on", "CE": "on", "DE": "on", "AD": "on"}}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}, {"tab": "A12 Q1 : O(n!)", "name": "Un algorithme exact en O(n!)", "src": "A12 · Exercice IV.1", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", 10], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "gt": "4 villes", "steps": [{"t": "<p><b>Énoncé (A12 Q1).</b> Donner un algorithme simple pour le TSP en O(n!).</p><div class=\"box\"><b>Énumération complète.</b> On fixe la ville de départ, on parcourt les (n − 1)! ordres des autres villes, on calcule la longueur de chaque tour en O(n) et on garde le plus court. Complexité O(n × (n − 1)!) = O(n!).</div><p>Exemple à 4 villes : 3! = 6 ordres, soit 3 tours distincts (chacun apparaît dans les deux sens).</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", 10], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}}, {"t": "<p>Tour 1 : A B C D A = 1 + 1 + 1 + 10 = <b>13</b>.</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", 10], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "e": {"AB": "on", "BC": "on", "CD": "on", "AD": "on"}, "badge": "13"}, {"t": "<p>Tour 2 : A B D C A = 1 + 2 + 1 + 2 = <b>6</b>.</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", 10], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "e": {"AB": "on", "BD": "on", "CD": "on", "AC": "on"}, "badge": "6"}, {"t": "<p>Tour 3 : A C B D A = 2 + 1 + 2 + 10 = <b>15</b>.</p><p>Minimum : <b>6</b> (tour 2). C'est exact : ratio 1. Mais le nombre de tours explose.</p>", "g": {"nodes": {"A": [0, 0], "B": [3, 0], "C": [3, 3], "D": [0, 3]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "A", 10], ["A", "C", 2, 0.3], ["B", "D", 2, 0.3]]}, "e": {"AC": "on", "BC": "on", "BD": "on", "AD": "on"}, "badge": "15", "tbl": "<table><thead><tr><th>n villes</th><th>(n − 1)! ordres</th></tr></thead><tbody><tr><td>5</td><td>24</td></tr><tr><td>10</td><td>362 880</td></tr><tr><td>15</td><td>8,7 × 10¹⁰</td></tr><tr><td>20</td><td>1,2 × 10¹⁷</td></tr></tbody></table>"}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}, {"tab": "A12 Q2 : Christofides", "name": "Ratio 3/2 de Christofides", "src": "A12 · Exercice IV.2 · question de cours", "g": {"nodes": {"A": [0, 1], "B": [5, 0], "C": [8, 3], "D": [7, 7], "E": [1, 6], "F": [4, 3]}, "edges": [], "euclid": true, "grid": true}, "gt": "6 points du plan", "steps": [{"t": "<p><b>Énoncé (A12 Q2).</b> L'heuristique de Christofides admet-elle un rapport de performance ?</p><div class=\"box\"><b>Oui : 3/2</b>, si les distances vérifient l'inégalité triangulaire. C(T) ≤ C(ACM) + C(couplage) ≤ OPT + OPT/2.</div><p>On suit la preuve sur les 6 points de l'atelier hamiltonien (OPT = 27,18).</p>", "e": {"AE": "on", "DE": "on", "CD": "on", "BC": "on", "BF": "on", "AF": "on"}, "badge": "OPT = 27,18"}, {"t": "<p><b>1. L'arbre.</b> ACM = 20,00. Retirer une arête du tour optimal donne un arbre couvrant, donc <b>C(ACM) ≤ OPT</b>.</p>", "e": {"BF": "tree", "CF": "tree", "CD": "tree", "EF": "tree", "AF": "tree"}, "badge": "ACM = 20,00"}, {"t": "<p><b>2. Sommets impairs de l'arbre</b> : A (1), B (1), D (1), E (1). F a degré 4, C degré 2. Il y en a toujours un nombre pair.</p>", "e": {"BF": "tree", "CF": "tree", "CD": "tree", "EF": "tree", "AF": "tree"}, "n": {"A": "odd", "B": "odd", "D": "odd", "E": "odd"}}, {"t": "<p><b>3. Couplage parfait minimal</b> sur {A, B, D, E} : 3 possibilités, on garde A–B + D–E = <b>11,18</b>.</p>", "e": {"BF": "tree", "CF": "tree", "CD": "tree", "EF": "tree", "AF": "tree", "AB": "match", "DE": "match"}, "n": {"A": "odd", "B": "odd", "D": "odd", "E": "odd"}, "tbl": "<table><thead><tr><th>Couplage</th><th>Coût</th></tr></thead><tbody><tr class=\"pick\"><td>A–B + D–E</td><td>11,18</td></tr><tr><td>A–E + B–D</td><td>12,38</td></tr><tr><td>A–D + B–E</td><td>16,43</td></tr></tbody></table>"}, {"t": "<p><b>Pourquoi le couplage coûte au plus OPT / 2.</b> On parcourt le tour optimal A E D C B F A en ne gardant que les sommets impairs : A → E → D → B → A. Par l'inégalité triangulaire, ce cycle coûte au plus OPT : 23,56 ≤ 27,18.</p><p>Il se coupe en deux couplages : {A–E, D–B} = 12,38 et {E–D, B–A} = 11,18. Le moins cher coûte au plus la moitié du cycle, donc ≤ OPT / 2 = 13,59. Le couplage minimal fait encore mieux : 11,18.</p>", "e": {"AE": "match", "DE": "match", "BD": "match", "AB": "match", "CD": "walk", "BC": "walk", "BF": "walk", "AF": "walk"}, "n": {"A": "odd", "B": "odd", "D": "odd", "E": "odd"}, "badge": "cycle impairs = 23,56"}, {"t": "<p><b>4. Arbre + couplage.</b> Tous les degrés sont pairs. Cycle eulérien depuis A : A → B → F → C → D → E → F → A, coût 20,00 + 11,18 = <b>31,18</b>.</p>", "e": {"BF": "tree", "CF": "tree", "CD": "tree", "EF": "tree", "AF": "tree", "AB": "match", "DE": "match"}, "n": {"A": "start"}, "badge": "eulérien = 31,18"}, {"t": "<p><b>5. Raccourcis.</b> On saute le second passage par F : E → F → A devient E → A. Tour A B F C D E A = <b>27,57</b>.</p><p>Bilan : 27,57 ≤ 31,18 ≤ 1,5 × 27,18 = 40,77.</p><div class=\"box\">C(T) ≤ C(cycle eulérien) = C(ACM) + C(couplage) ≤ OPT + OPT/2 = <b>3/2 OPT</b>. Les trois inégalités utilisent l'inégalité triangulaire (raccourcis et cycle des impairs).</div>", "e": {"EF": "walk", "AF": "walk", "AB": "on", "BF": "on", "CF": "on", "CD": "on", "DE": "on", "AE": "on"}, "badge": "Christofides = 27,57"}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}, {"tab": "A12 Q3 : ratio du 2-opt", "name": "Ratio du 2-opt", "src": "A12 · Exercice IV.3 · question de cours", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}, "gt": "Arêtes à 1 ou M", "steps": [{"t": "<p><b>Énoncé (A12 Q3).</b> La méthode 2-opt admet-elle un rapport de performance ?</p><div class=\"box\"><b>Non, pas de ratio constant.</b> Sans inégalité triangulaire, un minimum local 2-opt peut être arbitrairement mauvais. Même avec, le pire cas grandit avec n.</div><p>Contre-exemple à 5 villes : les arêtes valent 1 ou M (M grand).</p>", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}}, {"t": "<p>Tour T = A → B → C → D → E → A, de coût 4 + <b>M</b>.</p>", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}, "e": {"AB": "on", "BC": "on", "CD": "on", "DE": "on", "AE": "on"}, "badge": "T = 4 + M"}, {"t": "<p><b>T est 2-opt optimal.</b> Sur 5 villes, il y a 5 mouvements 2-opt. Ceux qui ne touchent pas E–A retirent 1 + 1 et ajoutent au moins 1 + 1 : rien à gagner. Ceux qui retirent E–A ajoutent forcément une autre arête à M :</p>", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}, "e": {"AB": "on", "BC": "out", "CD": "on", "DE": "on", "AE": "out", "BE": "in", "AC": "in"}, "tbl": "<table><thead><tr><th>Retirées</th><th>Ajoutées</th><th>Δ</th></tr></thead><tbody><tr><td>A–B + C–D</td><td>A–C + B–D</td><td>0</td></tr><tr><td>A–B + D–E</td><td>A–D + B–E</td><td>2M − 2</td></tr><tr><td>B–C + D–E</td><td>B–D + C–E</td><td>0</td></tr><tr><td>B–C + E–A</td><td>B–E + C–A</td><td>0</td></tr><tr><td>C–D + E–A</td><td>C–E + D–A</td><td>0</td></tr></tbody></table>"}, {"t": "<p>Optimal : A → B → D → E → C → A, cinq arêtes à 1, coût <b>5</b>.</p><p>Ratio = (4 + M) / 5 → ∞ quand M → ∞. Une descente 2-opt peut donc s'arrêter sur une solution aussi mauvaise qu'on veut.</p>", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}, "e": {"AB": "on", "BD": "on", "DE": "on", "CE": "on", "AC": "on"}, "badge": "optimum = 5"}, {"t": "<p><b>Et avec l'inégalité triangulaire ?</b> Toujours pas de constante : le pire rapport d'un minimum local 2-opt croît avec n (de l'ordre de √n dans le cas métrique). Ce résultat n'est pas à démontrer.</p><div class=\"box\"><b>À écrire.</b> Non : 2-opt n'a pas de rapport de performance constant. Contre-exemple sans inégalité triangulaire (ci-dessus) ; et A21 Ex IV montre un cas concret où PPV + 2-opt reste bloqué à 21 au lieu de 19. Seule garantie dans le plan : un tour 2-opt optimal ne se croise pas.</div>", "g": {"nodes": {"A": [0.0, 2.0], "B": [-1.902, 0.618], "C": [-1.176, -1.618], "D": [1.176, -1.618], "E": [1.902, 0.618]}, "edges": [["A", "B", 1], ["B", "C", 1], ["C", "D", 1], ["D", "E", 1], ["E", "A", "M"], ["A", "C", 1, 0.35], ["B", "D", 1, 0.35], ["C", "E", 1, 0.35], ["A", "D", "M", 0.3], ["B", "E", "M", 0.3]]}}], "rule": "<table><thead><tr><th>Méthode</th><th>Ratio</th><th>Condition</th></tr></thead><tbody><tr><td>Énumération O(n!)</td><td>1 (exact)</td><td>aucune, mais inutilisable dès n ≈ 15</td></tr><tr><td>Christofides</td><td>3/2</td><td>inégalité triangulaire</td></tr><tr><td>Arbre doublé</td><td>2</td><td>inégalité triangulaire</td></tr><tr><td>PPV</td><td>O(log n), pas constant</td><td>avec ; sinon arbitrairement grand</td></tr><tr><td>2-opt</td><td>pas constant</td><td>sinon arbitrairement grand</td></tr></tbody></table><p>Sans inégalité triangulaire, aucune heuristique polynomiale n'a de ratio constant (sauf si P = NP).</p>"}]};
+</script>
+<script>
+(function(){
+"use strict";
+var A=window.ATELIER, KEY=A.key;
+var NS="http://www.w3.org/2000/svg";
+var $=function(id){return document.getElementById(id)};
+var STY={
+  on:   {c:"var(--accent)",w:.075,dash:null,lab:"tournée / cycle"},
+  tree: {c:"var(--r2)",w:.075,dash:null,lab:"arbre"},
+  dbl:  {c:"var(--r2)",w:.13,dash:null,lab:"arête doublée",inner:true},
+  match:{c:"var(--r3)",w:.07,dash:".16 .1",lab:"couplage"},
+  out:  {c:"var(--no)",w:.06,dash:".14 .1",lab:"arête retirée / interdite"},
+  "in": {c:"var(--cand)",w:.075,dash:null,lab:"arête ajoutée / candidate"},
+  heavy:{c:"var(--no)",w:.05,dash:null,lab:"arête lourde",op:.45},
+  walk: {c:"var(--muted)",w:.05,dash:".1 .08",lab:"détour"}
+};
+function key(u,v){return u<v?u+v:v+u}
+function el(t,a,p){var e=document.createElementNS(NS,t);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function fmt(x){return (Math.round(x*100)/100).toFixed(2).replace(".",",")}
+function graphOf(tab,st){var g=st.g||tab.g;return typeof g==="string"?A.graphs[g]:g}
+var T=0,k=0,timer=null;
+function dist(G,u,v){var a=G.nodes[u],b=G.nodes[v];return Math.hypot(a[0]-b[0],a[1]-b[1])}
+function draw(){
+  var tab=A.tabs[T],st=tab.steps[k],G=graphOf(tab,st);
+  var svg=$("g");svg.innerHTML="";
+  var xs=[],ys=[];for(var n in G.nodes){xs.push(G.nodes[n][0]);ys.push(G.nodes[n][1])}
+  var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+  var span=Math.max(x1-x0,y1-y0,1),pad=span*0.14,s=8/span;
+  var W=(x1-x0)*s+2*pad*s,H=(y1-y0)*s+2*pad*s;
+  svg.setAttribute("viewBox","0 0 "+W.toFixed(2)+" "+H.toFixed(2));
+  function X(n){return (G.nodes[n][0]-x0+pad)*s}
+  function Y(n){return (y1-G.nodes[n][1]+pad)*s}
+  var R=0.32,fs=0.34;
+  if(G.grid){var gg=el("g",{},svg);for(var gx=Math.ceil(x0-pad);gx<=x1+pad;gx++)el("line",{x1:(gx-x0+pad)*s,y1:0,x2:(gx-x0+pad)*s,y2:H,stroke:"var(--grid)","stroke-width":.02},gg);for(var gy=Math.ceil(y0-pad);gy<=y1+pad;gy++)el("line",{x1:0,y1:(y1-gy+pad)*s,x2:W,y2:(y1-gy+pad)*s,stroke:"var(--grid)","stroke-width":.02},gg)}
+  var E=st.e||{},labs=st.lab||{},base={};
+  (G.edges||[]).forEach(function(e){base[key(e[0],e[1])]=e});
+  var all={};for(var b in base)all[b]=1;for(var h in E)all[h]=1;
+  var used={};
+  function edgeLine(kk,cls,layer){
+    var u=kk[0],v=kk[1],e=base[kk],S=STY[cls];
+    var x1_=X(u),y1_=Y(u),x2_=X(v),y2_=Y(v);
+    if(!S){el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--grid-strong)","stroke-width":.035},layer);return}
+    el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:S.c,"stroke-width":S.w,"stroke-dasharray":S.dash||"none","stroke-linecap":"round",opacity:S.op||1},layer);
+    if(S.inner)el("line",{x1:x1_,y1:y1_,x2:x2_,y2:y2_,stroke:"var(--paper)","stroke-width":S.w/3},layer);
+    used[cls]=1;
+  }
+  var lay0=el("g",{},svg),lay1=el("g",{},svg),lay2=el("g",{},svg);
+  Object.keys(all).forEach(function(kk){var c=E[kk];edgeLine(kk,c,c&&c!=="heavy"?lay1:lay0)});
+  /* étiquettes */
+  Object.keys(all).forEach(function(kk){
+    var e=base[kk],txt=null,t=.5;
+    if(labs[kk]!==undefined)txt=labs[kk];
+    else if(e&&e[2]!=null)txt=String(e[2]);
+    else if(G.euclid&&E[kk]&&E[kk]!=="heavy")txt=fmt(dist(G,kk[0],kk[1]));
+    if(txt===null||txt==="")return;
+    if(e&&e[3]!=null)t=e[3];
+    var u=kk[0],v=kk[1];if(e&&e[0]!==u){t=1-t}
+    var lx=X(u)+(X(v)-X(u))*t,ly=Y(u)+(Y(v)-Y(u))*t;
+    var cls=E[kk],S=STY[cls];
+    el("text",{x:lx,y:ly+fs*0.35,"text-anchor":"middle","font-size":fs*0.95,"font-weight":S&&cls!=="heavy"?700:500,fill:S?S.c:"var(--muted)","font-family":"JetBrains Mono, monospace",stroke:"var(--paper)","stroke-width":.12,"paint-order":"stroke"},lay2).textContent=txt;
+  });
+  var N=st.n||{};
+  for(var nn in G.nodes){
+    var c=N[nn],fill="var(--paper)",stroke="var(--ink)",tc="var(--ink)",sw=.04;
+    if(c==="start"){fill="var(--r2)";stroke="var(--r2)";tc="var(--paper)"}
+    else if(c==="done"){fill="var(--accent)";stroke="var(--accent)";tc="var(--paper)"}
+    else if(c==="odd"){stroke="var(--cand)";sw=.09}
+    else if(c==="dup"){fill="var(--no)";stroke="var(--no)";tc="var(--paper)"}
+    else if(c==="dim"){stroke="var(--grid-strong)";tc="var(--muted)"}
+    el("circle",{cx:X(nn),cy:Y(nn),r:R,fill:fill,stroke:stroke,"stroke-width":sw},lay2);
+    el("text",{x:X(nn),y:Y(nn)+fs*0.36,"text-anchor":"middle","font-size":fs*1.05,"font-weight":700,fill:tc,"font-family":"Space Grotesk, sans-serif"},lay2).textContent=nn;
+  }
+  if(st.pt){st.pt.forEach(function(p){var px=(p[0]-x0+pad)*s,py=(y1-p[1]+pad)*s;el("circle",{cx:px,cy:py,r:.12,fill:"var(--r4)"},lay2);el("text",{x:px+.22,y:py-.15,"font-size":fs*.9,"font-weight":700,fill:"var(--r4)","font-family":"Space Grotesk, sans-serif"},lay2).textContent=p[2]})}
+  var lg="";for(var u in used){lg+='<span><i style="border-top-color:'+STY[u].c+(STY[u].dash?';border-top-style:dashed':'')+'"></i>'+STY[u].lab+"</span>"}
+  $("legend").innerHTML=lg;
+  $("gtitle").textContent=st.gt||tab.gt||"Graphe";
+  $("gbadge").textContent=st.badge||"";
+  $("stext").innerHTML=st.t;
+  $("stbl").innerHTML=st.tbl||"";
+  $("count").textContent="Étape "+(k+1)+" / "+tab.steps.length;
+  $("slider").max=tab.steps.length-1;$("slider").value=k;
+  $("prev").disabled=$("first").disabled=k===0;$("next").disabled=k===tab.steps.length-1;
+}
+function stop(){if(timer){clearInterval(timer);timer=null;$("play").textContent="Lecture"}}
+function pick(i){T=i;k=0;stop();var tab=A.tabs[i];$("tname").textContent=tab.name;$("tsrc").textContent=tab.src;
+  $("truletxt").innerHTML=tab.rule||"";$("trule").style.display=tab.rule?"":"none";
+  document.querySelectorAll("#tabs button").forEach(function(b,j){b.setAttribute("aria-selected",j===i)});
+  try{localStorage.setItem(KEY,String(i))}catch(e){}draw()}
+A.tabs.forEach(function(t,i){var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.textContent=t.tab||t.name;b.onclick=function(){pick(i)};$("tabs").appendChild(b)});
+$("next").onclick=function(){var n=A.tabs[T].steps.length;if(k<n-1){k++;draw()}};
+$("prev").onclick=function(){if(k>0){k--;draw()}};
+$("first").onclick=function(){k=0;draw()};
+$("slider").oninput=function(e){k=+e.target.value;draw()};
+$("play").onclick=function(){if(timer){stop();return}$("play").textContent="Pause";timer=setInterval(function(){if(k<A.tabs[T].steps.length-1){k++;draw()}else stop()},2500)};
+document.addEventListener("keydown",function(e){if(e.target.tagName==="INPUT")return;if(e.key==="ArrowRight")$("next").click();else if(e.key==="ArrowLeft")$("prev").click()});
+var s0=0;try{var x=+localStorage.getItem(KEY);if(x>=0&&x<A.tabs.length)s0=x}catch(e){}
+pick(s0);
+})();
+</script>
+</body>
+</html>

@@ -157,7 +157,7 @@
         });
         if (!items.length) return;
         total += items.length;
-        out += '<h2 class="section-title">' + esc(g.titre) + '<span class="count">' + items.length + '</span></h2><div class="grid">' + items.map(card).join("") + "</div>";
+        out += '<h2 class="section-title">' + esc(g.titre) + '<span class="count">' + items.length + '</span></h2>' + (g.resume ? '<p class="group-lead">' + esc(g.resume) + '</p>' : '') + '<div class="grid">' + items.map(card).join("") + "</div>";
       });
       document.getElementById("groups").innerHTML = out || '<p class="empty">Rien ne correspond à cette recherche.</p>';
     }
