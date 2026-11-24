@@ -24,6 +24,7 @@ window.SITE = {
         {
           id: "metaheuristique",
           titre: "Métaheuristique",
+          recherche: "Chercher (ex. Fletcher, A15, ratio)…",
           resume: "Tournées : théorie du TSP, Little, Beasley et Christofides, VRP (PPV, Gillett-Miller, Shamos, Fletcher), postier chinois et projet TOP. Rangé par familles d'exercices.",
           groupes: [
             {
@@ -37,6 +38,7 @@ window.SITE = {
               titre: "1 · Théorie du TSP : cycles, bornes, ratios, 2-opt",
               resume: "Les questions de cours : hamiltonien ou eulérien, prouver qu'un cycle est optimal, ratios du PPV, de Christofides et du 2-opt.",
               items: [
+                { type: "fiche", titre: "Définitions à connaître par cœur", resume: "Tout le vocabulaire des 17 annales avec la formulation attendue et où il tombe : hamiltonien, eulérien, inégalité triangulaire, ratio, 2-opt, ACM, couplage, TSP/VRP/TOP, PSE, MTZ. Note courte sur PPC, PLNE et ordonnancement.", src: "/ai09/metaheuristique/fiches/definitions.md", tags: ["cours", "par cœur"] },
                 { type: "atelier", titre: "Hamiltonien, eulérien + A11 Ex IV", resume: "La différence entre les deux, puis arbre couvrant minimum vs cycle hamiltonien et ratio du PPV (A11).", href: "/ai09/metaheuristique/ateliers/hamiltonien-eulerien.html", tags: ["A11", "bases"] },
                 { type: "atelier", titre: "A21 Ex IV : optimalité, PPV + 2-opt", resume: "Cycle de 21, preuve que 19 est optimal sans méthode exacte, pourquoi PPV + 2-opt reste bloqué à 21.", href: "/ai09/metaheuristique/ateliers/a21-tsp-optimalite.html", tags: ["A21", "borne", "2-opt"] },
                 { type: "atelier", titre: "Ratios et garanties", resume: "PPV et inégalité triangulaire, visites multiples, 2-opt et croisements (P18 = A05 = A09), O(n!), Christofides 3/2 et 2-opt (A12).", href: "/ai09/metaheuristique/ateliers/ratios-tsp.html", tags: ["P18", "A12", "ratio"] }
@@ -85,10 +87,58 @@ window.SITE = {
               ]
             }
           ]
+        },
+        {
+          id: "ppc",
+          titre: "PPC (GNU-Prolog)",
+          resume: "Programmation par contraintes : les 11 exercices du TD avec l'énoncé d'abord, la correction ensuite. Tous les programmes sont testés en GNU-Prolog.",
+          recherche: "Chercher (ex. reines, disjonction, fd_minimize)…",
+          groupes: [
+            {
+              titre: "Vue d'ensemble",
+              resume: "Commence ici : la syntaxe à savoir écrire de tête et la méthode variables, domaines, contraintes.",
+              items: [
+                { type: "fiche", titre: "Mémo GNU-Prolog et méthode CSP", resume: "fd_domain, contraintes arithmétiques et booléennes, comptage, fd_labeling et ses options, fd_minimize, pièges.", src: "/ai09/ppc/fiches/memo-gnu-prolog.md", tags: ["syntaxe", "méthode"] }
+              ]
+            },
+            {
+              titre: "1 · Modéliser : les reines",
+              resume: "Le même problème avec deux modèles : comment choisir ses variables pour réduire l'espace de recherche.",
+              items: [
+                { type: "exercice", titre: "Ex 1 à 3 : les reines", resume: "CSP et programme du modèle 1 (Li, Ci), modèle 2 (une reine par colonne), puis n reines.", src: "/ai09/ppc/exercices/ex01-reines.md", tags: ["CSP", "toutesDiff", "récursion"] }
+              ]
+            },
+            {
+              titre: "2 · Compter et calculer",
+              resume: "Contraintes de comptage, une équation arithmétique, puis l'optimisation avec fd_minimize.",
+              items: [
+                { type: "exercice", titre: "Ex 4 : car sequencing", resume: "8 voitures, 3 couleurs, des quotas : fd_atmost, fd_exactly.", src: "/ai09/ppc/exercices/ex04-car-sequencing.md", tags: ["comptage"] },
+                { type: "exercice", titre: "Ex 5 : SEND + MORE = MONEY", resume: "Cryptarithme : toutesDiff et une seule égalité linéaire.", src: "/ai09/ppc/exercices/ex05-send-more.md", tags: ["arithmétique"] },
+                { type: "exercice", titre: "Ex 6 : retour de monnaie", resume: "CSP avec paramètres, puis le moins de pièces possible avec fd_minimize.", src: "/ai09/ppc/exercices/ex06-monnaie.md", tags: ["optimisation"] }
+              ]
+            },
+            {
+              titre: "3 · Grilles et graphes",
+              resume: "Une contrainte par frontière ou par ligne, colonne et bloc ; effet de la consistance et des heuristiques.",
+              items: [
+                { type: "exercice", titre: "Ex 7 : coloriage de carte", resume: "Lister les frontières, une contrainte ≠ par frontière, pourquoi 3 couleurs ne suffisent pas.", src: "/ai09/ppc/exercices/ex07-coloriage.md", tags: ["coloration", "clique"] },
+                { type: "exercice", titre: "Ex 9 : carré magique", resume: "Ordre 3, consistance partielle #= ou totale #=#, heuristiques de fd_labeling mesurées.", src: "/ai09/ppc/exercices/ex09-carre-magique.md", tags: ["consistance", "heuristiques"] },
+                { type: "exercice", titre: "Ex 10 : sudoku", resume: "27 toutesDiff : lignes, colonnes, blocs. Version liste de listes et version X11…X99.", src: "/ai09/ppc/exercices/ex10-sudoku.md", tags: ["toutesDiff"] }
+              ]
+            },
+            {
+              titre: "4 · Ordonnancement",
+              resume: "Précédences, disjonctions réifiées et objectifs Cmax ou somme des fins. Tombé en A16.",
+              items: [
+                { type: "exercice", titre: "Ex 8 : construire sa maison", resume: "Précédences sans ressource, minimiser la date de fin, vérifier par le chemin critique.", src: "/ai09/ppc/exercices/ex08-maison.md", tags: ["précédence"] },
+                { type: "exercice", titre: "Ex 11 : ordonnancement (A16)", resume: "Une machine : ri, pi, di, disjonction, Cmax puis ΣCi. Version 2 machines de l'annale A16.", src: "/ai09/ppc/exercices/ex11-ordonnancement.md", tags: ["disjonction", "A16"] }
+              ]
+            }
+          ]
         }
         /*
          * Prochaine section : copier le bloc ci-dessus, changer id / titre / resume,
-         * puis créer le dossier /ai09/<id>/ avec une copie de /ai09/metaheuristique/index.html.
+         * puis ajouter la page dans tools/pages.py (ou copier /ai09/ppc/index.html).
          */
       ]
     }

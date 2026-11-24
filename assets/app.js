@@ -24,7 +24,7 @@
     (section.groupes || []).forEach(function (g) { g.items.forEach(function (it) { out.push(it); }); });
     return out;
   }
-  var TYPES = { atelier: "Atelier", fiche: "Fiche", corrige: "Corrigé" };
+  var TYPES = { atelier: "Atelier", exercice: "Exercice", fiche: "Fiche", corrige: "Corrigé" };
   function itemHref(it) { return it.type === "atelier" ? it.href : "/fiche.html?src=" + encodeURIComponent(it.src); }
 
   /* ---------- thème clair / sombre ---------- */
@@ -90,12 +90,15 @@
     var secs = uv.sections || [];
     box.innerHTML = secs.map(function (s) {
       var items = allItems(s);
-      var nA = items.filter(function (i) { return i.type === "atelier"; }).length;
-      var nF = items.length - nA;
+      var n = { atelier: 0, exercice: 0, fiche: 0 };
+      items.forEach(function (i) { n[i.type === "corrige" ? "fiche" : i.type]++; });
+      var chips = [["atelier", "atelier", "ateliers"], ["exercice", "exercice", "exercices"], ["fiche", "fiche ou corrigé", "fiches et corrigés"]]
+        .filter(function (t) { return n[t[0]]; })
+        .map(function (t) { return '<span class="chip ' + t[0] + '">' + n[t[0]] + " " + (n[t[0]] > 1 ? t[2] : t[1]) + "</span>"; }).join("");
       return '<a class="card" href="/' + esc(uv.id) + "/" + esc(s.id) + '"><h3>' + esc(s.titre) + "</h3><p>" + esc(s.resume) + "</p>" +
-        '<div class="meta"><span class="chip atelier">' + nA + " ateliers</span>" + '<span class="chip fiche">' + nF + " fiches et corrigés</span></div></a>";
+        '<div class="meta">' + chips + "</div></a>";
     }).join("") +
-      '<div class="card uv-card soon" style="border-top-width:1px"><h3>Prochaine section</h3><p>PPC (GNU-Prolog), PLNE… à ajouter quand tu auras le nom des parties.</p></div>';
+      '<div class="card uv-card soon" style="border-top-width:1px"><h3>Prochaine section</h3><p>PLNE, à ajouter quand elle sera vue en cours.</p></div>';
     var cnt = document.getElementById("sections-count");
     if (cnt) cnt.textContent = secs.length + " section" + (secs.length > 1 ? "s" : "");
     initChecklist(uv.id);
@@ -135,9 +138,12 @@
     var filter = store("rv-filter") || "tout";
     var q = "";
     var fbox = document.getElementById("filters");
-    var opts = [["tout", "Tout"], ["atelier", "Ateliers"], ["fiche", "Fiches"], ["corrige", "Corrigés"]];
+    var present = {};
+    allItems(s).forEach(function (it) { present[it.type] = 1; });
+    var opts = [["tout", "Tout"], ["atelier", "Ateliers"], ["exercice", "Exercices"], ["fiche", "Fiches"], ["corrige", "Corrigés"]].filter(function (o) { return o[0] === "tout" || present[o[0]]; });
+    if (filter !== "tout" && !present[filter]) filter = "tout";
     fbox.innerHTML = opts.map(function (o) { return '<button type="button" data-f="' + o[0] + '">' + o[1] + "</button>"; }).join("") +
-      '<input type="search" id="q" placeholder="Chercher (ex. Fletcher, A15, ratio)…" aria-label="Chercher une ressource">';
+      '<input type="search" id="q" placeholder="' + esc(s.recherche || "Chercher…") + '" aria-label="Chercher une ressource">';
 
     function card(it) {
       var tags = (it.tags || []).map(function (t) { return '<span class="chip tag">' + esc(t) + "</span>"; }).join("");
@@ -217,6 +223,21 @@
         catch (e) { div.textContent = c.textContent; }
         c.parentNode.replaceWith(div);
       });
+      var corrs = out.querySelectorAll("details.corr");
+      if (corrs.length) {
+        var bar = out.querySelector(".doc-actions");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip tag corr-all";
+        btn.textContent = "Afficher toutes les corrections";
+        btn.addEventListener("click", function () {
+          var open = btn.dataset.open !== "1";
+          corrs.forEach(function (d) { d.open = open; });
+          btn.dataset.open = open ? "1" : "";
+          btn.textContent = open ? "Masquer toutes les corrections" : "Afficher toutes les corrections";
+        });
+        bar.appendChild(btn);
+      }
       var toc = document.getElementById("toc");
       var hs = out.querySelectorAll("h2");
       var links = [];
