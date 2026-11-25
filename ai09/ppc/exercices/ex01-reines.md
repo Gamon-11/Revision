@@ -99,6 +99,8 @@ Solutions : (X1, X2, X3, X4) = (2, 4, 1, 3) ou (3, 1, 4, 2).
 
 Tu ne peux pas écrire les variables à la main : crée la liste avec `length(Xs, N)`, puis parcours-la récursivement en comparant chaque reine à toutes celles qui sont à sa droite, en gardant l'écart de colonnes D.
 
+**`length(L, N)`** : L est une liste de N éléments. Si tu donnes N mais pas L, Prolog fabrique une liste de N variables vides : `length(L, 4)` donne `L = [_,_,_,_]`, tes 4 reines X1..X4, prêtes pour `fd_domain(L, 1, 4)`.
+
 </details>
 
 <details class="corr"><summary>Voir la correction</summary>
