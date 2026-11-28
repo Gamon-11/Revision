@@ -33,9 +33,19 @@ Deux cases (l, c) et (l', c') sont sur la même diagonale montante si c + l = c'
 
 C = Clig ∪ Ccol ∪ Cdm ∪ Cdd, soit 4 × 6 = 24 contraintes binaires.
 
-**Modèle 1 bis** : on remplace les deux premières familles par des contraintes globales, Clig = toutesDiff({L1, L2, L3, L4}) et Ccol = toutesDiff({C1, C2, C3, C4}).
-
 Une solution : (C1, L1) = (1, 2), (C2, L2) = (2, 4), (C3, L3) = (3, 1), (C4, L4) = (4, 3).
+
+</details>
+
+## Exercice 1 bis : contraintes globales
+
+**Modèle 1 bis** : réécris les familles « lignes différentes » et « colonnes différentes » avec une **contrainte globale** au lieu de 6 contraintes binaires chacune.
+
+<details class="corr"><summary>Voir la correction</summary>
+
+Clig = toutesDiff({L1, L2, L3, L4}) et Ccol = toutesDiff({C1, C2, C3, C4}).
+
+En GNU-Prolog, toutesDiff s'écrit `fd_all_different([L1,L2,L3,L4])`. Une contrainte globale dit la même chose que les 6 contraintes ≠, mais en une seule fois, ce qui permet au solveur de mieux filtrer.
 
 </details>
 

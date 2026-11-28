@@ -4,7 +4,7 @@ Tout ce qu'il faut savoir écrire de tête pour la copie 1, tiré des 16 premiè
 
 ## Modéliser un CSP en 3 étapes
 
-Un CSP est un triplet **(X, D, C)** :
+Un **CSP** (*Constraint Satisfaction Problem*, problème de satisfaction de contraintes) est un triplet **(X, D, C)** :
 
 1. **Variables X** : les inconnues du problème. Commence toujours par là, en disant ce que représente chaque variable (« Xi = ligne de la reine de la colonne i »).
 2. **Domaines D** : les valeurs que chaque variable peut prendre (« D(Xi) = {1, …, n} »).
@@ -45,6 +45,8 @@ Avec un objectif à optimiser, la dernière ligne devient `fd_minimize(fd_labeli
 | `#=<` | `#=<#` | inférieur ou égal |
 | `#>` | `#>#` | supérieur |
 | `#>=` | `#>=#` | supérieur ou égal |
+
+**Attention à l'ordre des symboles** : inférieur ou égal s'écrit `#=<` (le = d'abord, comme en Prolog classique `=<`), jamais `#<=`. Supérieur ou égal s'écrit `#>=`, dans l'ordre habituel.
 
 La version totale filtre plus de valeurs à chaque étape (moins de retours arrière) mais chaque propagation coûte plus cher. Voir le carré magique.
 
